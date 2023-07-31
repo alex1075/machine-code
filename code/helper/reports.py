@@ -293,7 +293,7 @@ def make_training_graphs(csv_file="/home/as-hunt/Etra-Space/white-thirds/output.
     sns.lineplot(data=dfm, x="Epoch", y="vals", hue='cols')
     plt.savefig(dir + "Training output together.png", bbox_inches='tight')
 
-def do_math(gt_file, pd_file, title, path, save_txt=False, target_names = ['Lymphocyte', 'Mononuclear cells', 'Neutrophils'], save_png=False):
+def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hunt/Etra-Space/white-thirds/obj.names', save_png=False):
     '''This function takes in a ground truth file and a prediction file and returns AI metrics for the model
     Optionally, it also outputs a confusion matrix and a text file with the results of the confusion matrix
     
@@ -308,7 +308,8 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, target_names = ['Lymp
     
     save_txt: boolean, whether or not to save the text file
     save_png: boolean, whether or not to save the png file
-    target_names: array of the names of the classes for the figures and report
+    
+    obj_name: path to the obj.names file to use for the confusion matrix
     ______________________________________________________________
     '''
     gt = open(gt_file, 'r')
@@ -319,6 +320,34 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, target_names = ['Lymp
     pd_len = 0
     pd_array = []
     pd_cm = []
+    target_names = []
+    temp = []
+    with open(obj_name, 'r') as f:
+        for line in f:
+            temp.append(line.strip())
+    for item in temp:
+        if item == 'ECHY':
+            target_names.append('Echinocyte')
+            temp.remove(item)
+        elif item == 'ERY':
+            target_names.append('Erythrocyte')
+            temp.remove(item)
+        elif item == 'LYM':
+            target_names.append('Lymphocyte')
+            temp.remove(item)
+        elif item == 'MON':
+            target_names.append('Monocyte')
+            temp.remove(item)
+        elif item == 'NEU':
+            target_names.append('Neutrophil')
+            temp.remove(item)
+        elif item == 'PLT':
+            target_names.append('Platelet')
+            temp.remove(item)
+        elif item == 'WBC':
+            target_names.append('White Blood Cell')
+            temp.remove(item)            
+    target_names.sort()        
     for line in pud:
         li = line.split(' ')
         name = li[0]
@@ -351,7 +380,6 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, target_names = ['Lymp
                         gt_array.pop(place)
                 else:
                     pass
-    name = 'Normalised Confusion Matrix ' + title + ' Post bbox matching'
     y_actu = pd.Series(gt_cm, name='Ground Truth')
     y_pred = pd.Series(pd_cm, name='Predicted')
     try:
@@ -452,6 +480,7 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, target_names = ['Lymp
         fbeta2_score_macro =  '0'
     fbeta2_score_none = fbeta_score(y_actu, y_pred, average=None, beta=2)
     try:
+        name = 'Normalise Confusion Matrix ' + title + ' Post bbox matching normalised'
         df_confusion = pd.crosstab(y_actu, y_pred, dropna=False)
         df_conf_norm = df_confusion.div(df_confusion.sum(axis=1), axis="index")
         plt.title(title)

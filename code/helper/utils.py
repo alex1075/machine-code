@@ -1,11 +1,6 @@
 import cv2
-import glob, os
-from PIL import Image
-import numpy as np
-import random
-import shutil
+import os
 import decimal
-import socket
 import tqdm
 
 
@@ -69,16 +64,7 @@ def change_annotation(i, j, x, y, height, width, path, image, save_name, save_pa
                             pass
                         else:
                             with open(save_path + save_name + '.txt', 'a') as f:
-                                f.write(str(classes))
-                                f.write(' ')
-                                f.write(str(round(x1, 6)))
-                                f.write(' ')
-                                f.write(str(round(y1, 6)))
-                                f.write(' ')
-                                f.write(str(round(x2, 6)))
-                                f.write(' ')
-                                f.write(str(round(y2, 6)))
-                                f.write('\n')
+                                f.write(str(classes) + ' ' + str(round(x1, 6)) + ' ' + str(round(y1, 6)) + ' ' + str(round(x2, 6)) + ' ' + str(round(y2, 6)) + '\n')
                 else:
                     pass
         else:
@@ -119,41 +105,6 @@ def save_arrya_to_csv(array, path, file):
     for item in array:
         f.write("%s,%s,%s,%s,%s,%s\n" % (item[0], item[1], item[2], item[3], item[4], item[5]))
     f.close()
-
-def send_file(path, file, server, port):
-    """
-    Send a file to a server.
-    """
-    # get the file size
-    filesize = os.path.getsize(path + file)
-    filename = file
-    SEPARATOR = "<SEPARATOR>"
-    BUFFER_SIZE = 4096 # send 4096 bytes each time step
-    # create the client socket
-    s = socket.socket()
-    print(f"[+] Connecting to {server}:{port}")
-    
-    # connect to the server
-    s.connect((server, port))
-    print("[+] Connected.")
-    # send the filename and filesize
-    # start sending the file
-    progress = tqdm.tqdm(range(filesize), f"Sending {filename}", unit="B", unit_scale=True, unit_divisor=1024)
-    with open(filename, "rb") as f:
-        while True:
-            # read the bytes from the file
-            bytes_read = f.read(BUFFER_SIZE)
-            if not bytes_read:
-                # file transmitting is done
-                break
-            # we use sendall to assure transimission in 
-            # busy networks
-            s.sendall(bytes_read)
-            # update the progress bar
-            progress.update(len(bytes_read))
-    # close the socket
-    s.close()
-    print(f"[+] File {file} sent to {server}:{port}")
 
 def split_img_label(data_train,data_test,folder_train,folder_test):
     try:

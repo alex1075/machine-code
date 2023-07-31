@@ -170,92 +170,24 @@ def get_prediction_mistakes(gt_file, pd_file, path_to_images, save_directory):
                     img = add_bbox(path_to_images + name+ '.jpg', bbox, int(classes))
                     cv2.imwrite(save_directory + name + '.jpg', img)        
 
-def import_results(input_file='result.txt', results_file='results.txt'):
-    '''Import's Yolo darknet detection results and filters bouding boxes that are outside of the image dimensions
-    This function is for the models trained on ECHY, ERY, and PLT'''
-    res = open(results_file, 'w')
-    with open(input_file, 'r') as f:
-        for line in f:
-            if line[0:4] == '/hom':
-                lin = re.split('/| ', line)
-                li = filter(lambda a: '.jpg' in a, lin)
-                l = list(li)[0][:-5]
-                image_name = l
-            elif line[0:4] == 'ERY:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 1
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-            elif line[0:4] == 'ECHY':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 0
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')              
-            elif line[0:4] == 'PLT:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 2
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                                  
-            elif line[0:4] == 'WBC:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 3
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')              
-            else:
-                pass
+def import_results_neo(input_file='result.txt', results_file='results.txt', obj_names='/home/as-hunt/Etra-Space/white-thirds/obj.names'):
+    '''Import's Yolo darknet detection results and filters bouding 
+    boxes that are outside of the image dimensions
+    This function will use the index given to darknet 
+    when training the model to determine the class of the object
 
-def import_results_2(input_file='result.txt', results_file='results.txt'):
-    '''Import's Yolo darknet detection results and filters bouding boxes that are outside of the image dimensions
-    This function is for the models trained on ECHY, ERY, PLT and WBC'''
+    This function does not filter the result.txt file.
+    
+    Args:
+        input_file (str): The path to the results file
+        results_file (str): The path to the output file
+        obj_names (str): The path to the obj.names file
+        '''
+    arry = []
     res = open(results_file, 'w')
+    with open(obj_names, 'r') as f:
+        for line in f:
+            arry.append(line.rstrip())
     with open(input_file, 'r') as f:
         for line in f:
             if line[0:4] == '/hom':
@@ -263,9 +195,9 @@ def import_results_2(input_file='result.txt', results_file='results.txt'):
                 li = filter(lambda a: '.jpg' in a, lin)
                 l = list(li)[0][:-5]
                 image_name = l
-            elif line[0:4] == 'ERY:':
+            elif (line[0:3] in arry) or (line[0:4] in arry ) == True:
                 lin = re.split(':|%|t|w|h', line)
-                classes = 1
+                classes = int(arry.index(lin[0]))
                 confidence = int((lin[1]))
                 if int(lin[4]) < 0:
                     left_x = 0
@@ -279,159 +211,9 @@ def import_results_2(input_file='result.txt', results_file='results.txt'):
                 height = int(lin[14][:-2])
                 bottom_y = top_y + height
                 right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')            
-            elif line[0:4] == 'ECHY':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 0
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')              
-            elif line[0:4] == 'PLT:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 5
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                  
-            elif line[0:4] == 'LYM:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 2
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                  
-            elif line[0:4] == 'MON:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 3
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')              
-            elif line[0:4] == 'NEU:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 4
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')              
+                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')          
             else:
-                pass
-
-def import_results_leukocytes(input_file='result.txt', results_file='results.txt'):
-    '''Import's Yolo darknet detection results and filters bouding boxes that are outside of the image dimensions
-    This function is for the models trained on LYM, MON and NEU'''
-    res = open(results_file, 'w')
-    with open(input_file, 'r') as f:
-        for line in f:
-            if line[0:4] == '/hom':
-                lin = re.split('/| ', line)
-                li = filter(lambda a: '.jpg' in a, lin)
-                l = list(li)[0][:-5]
-                image_name = l
-            elif line[0:4] == 'LYM:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 0
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-            elif line[0:4] == 'MON:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 1
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 1
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')              
-            elif line[0:4] == 'NEU:':
-                lin = re.split(':|%|t|w|h', line)
-                classes = 2
-                confidence = int((lin[1]))
-                if int(lin[4]) < 0:
-                    left_x = 0
-                else:
-                    left_x = int(lin[4])
-                if int(lin[6]) < 0:
-                    top_y = 0
-                else:
-                    top_y = int(lin[6])
-                width = int(lin[10])
-                height = int(lin[14][:-2])
-                bottom_y = top_y + height
-                right_x = left_x + width
-                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')               
-            else:
-                pass
+                pass 
 
 def make_ground_truth(ground_truth_file='gt.txt', test_folder='/home/as-hunt/Etra-Space/new_data_sidless/valid/'):
     '''Creates a ground truth file from the annotations in a given folder'''
@@ -552,329 +334,23 @@ def make_ground_truth_unfiltered(ground_truth_file='gt.txt', test_folder='/home/
                         bottom_y = int(decimal.Decimal(center_y) - (height / 2))
                         gt_file.write(img_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' \n')
 
-def import_and_filder_results(input_file='/home/as-hunt/result.txt', results_file='results.txt'): 
-      '''Import's Yolo darknet detection results and filters bouding boxes that are outside of the image dimensions
-      This function is for the models trained on ECHY, ERY, PLT and WBC'''
-      res = open(results_file, 'w')
-      with open(input_file, 'r') as f:
-        for line in f:
-            if line[0:4] == '/hom':
-                lin = re.split('/| ', line)
-                li = filter(lambda a: '.jpg' in a, lin)
-                l = list(li)[0][:-5]
-                image_name = l
-            elif line[0:4] == 'ERY:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 1
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-            elif line[0:4] == 'ECHY':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 0
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-            elif line[0:4] == 'PLT:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 2
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                    
-            elif line[0:4] == 'WBC:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    # pass
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 3
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                pass
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                    
-            else:
-                pass
+def import_and_filter_result_neo(input_file='/home/as-hunt/result.txt', results_file='results.txt', obj_names='/home/as-hunt/Etra-Space/white-thirds/obj.names'):
+    '''Import's Yolo darknet detection results bouding boxes.
 
+    This function does filters the result.txt file. 
+    It removes bouding boxes that are outside the image and
+    bouding boxes that are too close to the edge of the image.
 
-
-def import_and_filter_results_3(input_file='/home/as-hunt/result.txt', results_file='results.txt'): 
-      '''Import's Yolo darknet detection results and filters bouding boxes that are outside of the image dimensions
-      This function is for the models trained on ECHY, ERY, and PLT'''
-      res = open(results_file, 'w')
-      with open(input_file, 'r') as f:
-        for line in f:
-            if line[0:4] == '/hom':
-                lin = re.split('/| ', line)
-                li = filter(lambda a: '.jpg' in a, lin)
-                l = list(li)[0][:-5]
-                image_name = l
-            elif line[0:4] == 'ERY:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 1
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-            elif line[0:4] == 'ECHY':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 0
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-            elif line[0:4] == 'PLT:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 2
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-                pass
-
-    
-def import_and_filder_result_2(input_file='/home/as-hunt/result.txt', results_file='results.txt'):
-    '''Import's Yolo darknet detection results and filters bouding boxes that are outside of the image dimensions
-      This function is for the models trained on ECHY, ERY, LYM, MON, NEU and PLT'''
+      Args:
+        input_file (str): The path to the results.txt file
+        results_file (str): The path to the file to save the filtered results
+        obj_names (str): The path to the obj.names file
+        '''
+    arry = []
     res = open(results_file, 'w')
+    with open(obj_names, 'r') as f:
+        for line in f:
+            arry.append(line.rstrip())
     with open(input_file, 'r') as f:
         for line in f:
             if line[0:4] == '/hom':
@@ -882,7 +358,7 @@ def import_and_filder_result_2(input_file='/home/as-hunt/result.txt', results_fi
                 li = filter(lambda a: '.jpg' in a, lin)
                 l = list(li)[0][:-5]
                 image_name = l
-            elif line[0:4] == 'ERY:':
+            elif (line[0:3] in arry) or (line[0:4] in arry ) == True:
                 lin = re.split(':|%|t|w|h', line)
                 if int(lin[4]) < 4:
                     pass
@@ -894,7 +370,7 @@ def import_and_filder_result_2(input_file='/home/as-hunt/result.txt', results_fi
                     elif int(lin[6]) > 412:
                         pass
                     else:
-                        classes = 1
+                        classes = int(arry.index(lin[0]))
                         confidence = int((lin[1]))
                         if int(lin[4]) < 0:
                             left_x = 0
@@ -923,216 +399,8 @@ def import_and_filder_result_2(input_file='/home/as-hunt/result.txt', results_fi
                                 pass
                             else:
                                 res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-            elif line[0:4] == 'ECHY':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 0
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
-            elif line[0:4] == 'PLT:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 5
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                    
-            elif line[0:4] == 'LYM:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    # pass
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 2
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                pass
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                    
-            elif line[0:4] == 'MON:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    # pass
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 3
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                   
-            elif line[0:4] == 'NEU:':
-                lin = re.split(':|%|t|w|h', line)
-                if int(lin[4]) < 4:
-                    pass
-                elif int(lin[4]) > 412:
-                    pass
-                else:
-                    if int(lin[6]) < 4:
-                        pass
-                    elif int(lin[6]) > 412:
-                        pass
-                    else:
-                        classes = 4
-                        confidence = int((lin[1]))
-                        if int(lin[4]) < 0:
-                            left_x = 0
-                        else:
-                            left_x = int(lin[4])
-                        if int(lin[6]) < 0:
-                            top_y = 0
-                        else:
-                            top_y = int(lin[6])
-                        width = int(lin[10])
-                        height = int(lin[14][:-2])
-                        bottom_y = top_y + height
-                        right_x = left_x + width
-                        if bottom_y < 0:
-                            bottom_y = 0
-                        if right_x > 416:
-                            right_x = 416
-                        if bottom_y < 4:
-                            pass
-                        elif bottom_y > 412:
-                            pass
-                        else:
-                            if right_x > 412:
-                                pass
-                            elif right_x < 4:
-                                pass
-                            else:
-                                res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')                    
             else:
-                pass
+                pass                    
 
 def del_edge_bbox_train(results_folder):
     for file in os.listdir(results_folder):
