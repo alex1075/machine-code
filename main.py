@@ -27,7 +27,7 @@ def main():
                 if file.endswith('.mp4'):
                     convertVideoToImage(path, 'temp/')
                 elif file.endswith('.png') or file.endswith('.tiff') or file.endswith('.bmp') or file.endswith('.jpg'):
-                    convert(path)
+                    convert(path, True, 'temp/')
                 else:
                     print('File type not supported')
             else:
@@ -37,7 +37,7 @@ def main():
                 if file.endswith('.mp4'):
                     convertVideoToImage(path, out)
                 elif file.endswith('.jpg') or file.endswith('.png') or file.endswith('.tiff') or file.endswith('.bmp'):
-                    convert(path, out)
+                    convert(path, True, out)
                 else:
                     print('File type not supported')
     elif a == '2':

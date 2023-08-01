@@ -13,13 +13,10 @@ from sklearn.model_selection import train_test_split
 
 
 def convert(path_to_folder='Data/', save_to_new=False, save_path='temp/'):
-    for infile in os.listdir(path_to_folder):
-        print ("file : " + infile)
+    for infile in tqdm.tqdm(os.listdir(path_to_folder), desc='Converting images', unit='images'):
         if infile[-3:] == "bmp":
-            print ("is bmp")
             outfile = infile[:-3] + "jpg"
             im = Image.open(path_to_folder + infile)
-            print ("new filename : " + outfile)
             out = im.convert("RGB")
             if save_to_new == True:
                 out.save(save_path + outfile, "jpeg", quality=100)
@@ -27,7 +24,6 @@ def convert(path_to_folder='Data/', save_to_new=False, save_path='temp/'):
                 out.save(path_to_folder + outfile, "jpeg", quality=100)
             os.remove(path_to_folder + infile)
         elif infile[-4:] == "tiff":
-            print ("is tiff")
             outfile = infile[:-4] + "jpg"
             im = Image.open(path_to_folder + infile)
             out = im.convert("RGB")
@@ -37,10 +33,8 @@ def convert(path_to_folder='Data/', save_to_new=False, save_path='temp/'):
                 out.save(path_to_folder + outfile, "jpeg", quality=100)
             os.remove(path_to_folder + infile)
         elif infile[-3:] == "png":
-            print ("is png")
             outfile = infile[:-3] + "jpg"
             img = cv2.imread(path_to_folder + infile)
-            print(path_to_folder + outfile)
             if save_to_new == True:
                 cv2.imwrite(save_path + outfile, img)
             else:
