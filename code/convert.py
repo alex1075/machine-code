@@ -41,8 +41,11 @@ def convert(path_to_folder='Data/', save_to_new=False, save_path='temp/'):
                 cv2.imwrite(path_to_folder + outfile, img)
             os.remove(path_to_folder + infile)
         elif infile[-3:] == "jpg" or infile[-3:] == "jpeg":
-            shutil.copy(path_to_folder + infile, save_path + infile)
-            os.remove(path_to_folder + infile)
+            try:
+                shutil.copy(path_to_folder + infile, save_path + infile)
+                os.remove(path_to_folder + infile)
+            except:
+                pass
         else:
             pass
 
@@ -141,6 +144,7 @@ def chopUpDataset(path_to_folder='test_dataset/', outfolder='output/', x=416, y=
     else:
         pass
     checkAllImg(outfolder, x, y)
+    del_top_n_bottom_parts(outfolder)
 
 def batchBackgroundRemove(path_to_folder='output/', background_folder='backgrounds/', outfolder='data_4/', alpha=2):
     list_img=[img for img in os.listdir(path_to_folder) if img.endswith('.jpg')==True]

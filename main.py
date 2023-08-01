@@ -16,6 +16,7 @@ def main():
     print('4. Test a model')
     print('5. Infer a model on biological data')
     print('6. Exit')
+    print('7. beta test a function')
     a = input('Enter a a selection: ')
     if a == '1':
         print('Converting multimedia data to JPEG images')
@@ -28,18 +29,58 @@ def main():
             if temp == 'y':
                 if file.endswith('.mp4'):
                     convertVideoToImage(path, 'temp/')
+                    print('Video converted')
+                    print('Do you wish to cut the images into 416x416 pixels? (y/n)')
+                    cut = input()
+                    if cut == 'y':
+                        ann = input('Is the data annotated? (y/n)')
+                        if ann == 'y':
+                            chopUpDataset('temp/', 'temp2/', 416, 416, True)
+                        else:
+                            chopUpDataset('temp/', 'temp2/', 416, 416, False)
                 elif file.endswith('.png') or file.endswith('.tiff') or file.endswith('.bmp') or file.endswith('.jpg'):
                     convert(path, True, 'temp/')
+                    print('Images converted')
+                    print('Do you wish to cut the images into 416x416 pixels? (y/n)')
+                    cut = input()
+                    if cut == 'y':
+                        ann = input('Is the data annotated? (y/n)')
+                        if ann == 'y':
+                            chopUpDataset('temp/', 'temp/', 416, 416, True)
+                        elif ann == 'n':
+                            chopUpDataset('temp/', 'temp/', 416, 416, False)
                 else:
                     print('File type not supported')
-            else:
+            elif temp == 'n':
                 print('Enter the path to the output folder: ')
                 print('Remember to use quotation marks and end the path with a /')
                 out = input()
+                print('Do you wish to cut the images into 416x416 pixels? (y/n)')
+                cut = input()
                 if file.endswith('.mp4'):
-                    convertVideoToImage(path, out)
+                    if cut == 'y':
+                        convertVideoToImage(path, 'temp/')
+                        print('Video converted')
+                        ann = input('Is the data annotated? (y/n)')
+                        if ann == 'y':
+                            chopUpDataset('temp/', out, 416, 416, True)
+                        elif ann == 'n':
+                            chopUpDataset('temp/', out, 416, 416, False)
+                    elif cut == 'n':    
+                        convertVideoToImage(path, out)
+                        print('Video converted')
                 elif file.endswith('.jpg') or file.endswith('.png') or file.endswith('.tiff') or file.endswith('.bmp'):
-                    convert(path, True, out)
+                    if cut == 'y':
+                        convert(path, True, 'temp/')
+                        print('Images converted')
+                        ann = input('Is the data annotated? (y/n)')
+                        if ann == 'y':
+                            chopUpDataset('temp/', out, 416, 416, True)
+                        elif ann == 'n':
+                            chopUpDataset('temp/', out, 416, 416, False)
+                    elif cut == 'n':   
+                        convert(path, True, out)
+                        print('Images converted')
                 else:
                     print('File type not supported')
     elif a == '2':
@@ -52,9 +93,10 @@ def main():
         temp = input()
         if temp == 'y':
             temp = 'temp/'
+            save_dir = os.getcwd() + '/' + temp
             import_names(path, True, temp)
             prepare_cfg('code/data/yolov4.cfg', temp + 'obj.names', temp, 100, 'yolov4_10.cfg')
-            make_obj_data(path, True, temp)
+            make_obj_data(path, True, save_dir)
         else:
             print('Enter the path to the output folder: ')
             print('Remember to use quotation marks and end the path with a /')
@@ -133,6 +175,8 @@ def main():
     elif a == '6':
         print('Exiting')
         exit()
+    elif a == '7':
+        checkAllImg('temp/', 416, 416)
     else:
         print('Invalid selection')
         main()

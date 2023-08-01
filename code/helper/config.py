@@ -83,13 +83,13 @@ def prepare_cfg(template_cfg='code/data/yolov4.cfg', obj_names='temp/obj.names',
     '''
     with open(obj_names) as f:
         names = f.readlines()
-        count = len(names) + 1
+        count = len(names) 
     filters = ((count + 5) * 3)    
     change_line(template_cfg, 19, 'max_batches = ' + str(epochs_to_run_for) + '\n', True, output_folder + output_name)
     change_line(output_folder + output_name, 21, 'steps = ' + str(round(epochs_to_run_for * 0.8)) + ',' + str(round(epochs_to_run_for * 0.9)) + '\n')
     change_line(output_folder + output_name, 962, 'filters = ' + str(filters) + '\n')
     change_line(output_folder + output_name, 969, 'classes = ' + str(count) + '\n')
-    change_line(output_folder + output_name, 1051, 'filters = ' + str(filters) + '\n')
+    change_line(output_folder + output_name, 1050, 'filters = ' + str(filters) + '\n')
     change_line(output_folder + output_name, 1057, 'classes = ' + str(count) + '\n')
     change_line(output_folder + output_name, 1138, 'filters = ' + str(filters) + '\n')
     change_line(output_folder + output_name, 1145, 'classes = ' + str(count) + '\n')
@@ -111,31 +111,34 @@ def make_obj_data(path_to_data, save_elsewhere=False, save_path='temp/'):
     '''
     os.chdir(path_to_data)
     if os.path.exists(path_to_data + 'obj.data'):
-        count = len(open(path_to_data + 'obj.names').readlines + 1)
-        names = os.getcwd(path_to_data + 'obj.names')
+        count = len(open(path_to_data + 'obj.names').readlines()) 
+        names = path_to_data + 'obj.names'
+    else:
+        names = path_to_data + 'obj.names'
+        count = len(open(save_path + 'obj.names').readlines()) 
     if os.path.exists(path_to_data + 'train/'):
         if os.path.exists(path_to_data + 'train/train.txt'):
-            train = os.getcwd(path_to_data + 'train/train.txt')
+            train = path_to_data + 'train/train.txt'
         else:
             prep('train.txt', path_to_data + 'train/')
-            train = os.getcwd(path_to_data + 'train/train.txt')
+            train = path_to_data + 'train/train.txt'
     if os.path.exists(path_to_data + 'test/'):
         if os.path.exists(path_to_data + 'test/test.txt'):
-            test = os.getcwd(path_to_data + 'test/test.txt')
+            test = path_to_data + 'test/test.txt'
         else:
             prep('test.txt', path_to_data + 'test/')
-            test = os.getcwd(path_to_data + 'test/test.txt')
+            test = path_to_data + 'test/test.txt'
     if os.path.exists(path_to_data + 'valid/'):
         if os.path.exists(path_to_data + 'valid/valid.txt'):
-            valid = os.getcwd(path_to_data + 'valid/valid.txt')
+            valid = path_to_data + 'valid/valid.txt'
         else:
             prep('valid.txt', path_to_data + 'valid/')
-            valid = os.getcwd(path_to_data + 'valid/valid.txt')
+            valid = path_to_data + 'valid/valid.txt'
     if os.path.exists(path_to_data + 'backup/'):
-        backup = os.getcwd(path_to_data + 'backup/')
+        backup = path_to_data + 'backup/'
     else:
         os.mkdir('backup')
-        backup = os.getcwd(path_to_data + 'backup/')
+        backup = path_to_data + 'backup/'
     if save_elsewhere == True:
         with open(save_path + 'obj.data', 'w') as f:
             f.write('classes = ' + str(count) + '\n')

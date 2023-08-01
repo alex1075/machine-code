@@ -1,5 +1,7 @@
 import os
 import cv2
+import tqdm
+import fnmatch
 import numpy as np
 import shutil
 from code.helper.utils import *
@@ -41,8 +43,9 @@ def crop_images(x, y, path, save_path, annotations=True):
     else:
         pass
     images = os.listdir(path)
-    for image in images:
+    for image in tqdm.tqdm(images, desc="Cropping images"):
         if image.endswith(".jpg"):
+            # print('Tick')
             img = cv2.imread(path + image)
             height, width, channels = img.shape
             for i in range(0, height, y):
@@ -61,19 +64,20 @@ def crop_images(x, y, path, save_path, annotations=True):
                     crop = img[i:i+y, j:j+x]
                     cv2.imwrite(save_path + image[:-4] + '_' + str(i) + '_' + str(j) + '.jpg', crop)
         else:
+            # print('Tock')
             pass
 
 def checkAllImg(path, x, y):
     images = os.listdir(path)
-    for image in images:
+    for image in tqdm.tqdm(images):
         if image.endswith(".jpg"):
             imgSizeCheck(image, path, x, y)
 
-def del_top_n_bottom_parts(path, save_path, annotations=True):
-    if annotations==True:
-        os.system('cd' + path + ' && rm *_1248_*.txt *_1664_*.txt *_0_*.txt *_0_*.jpg *_1248_*.jpg *_1664_*.jpg')
-    else:
-        os.system('cd' + path + ' && rm *_0_*.jpg *_1248_*.jpg *_1664_*.jpg')
+def del_top_n_bottom_parts(path):
+        for file in os.listdir(path):
+            if fnmatch.fnmatch(file, '*_0_*') or fnmatch.fnmatch(file, '*_1664_*'):
+                os.remove(path + file)
+
 
 
 def increase_brightness(img, value=30):
