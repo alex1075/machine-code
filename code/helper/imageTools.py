@@ -19,16 +19,11 @@ def unsharp_mask(image, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0):
 
 def imgSizeCheck(image, path, x, y):
     img = cv2.imread(path + image)
-    # get image dimensions
     height, width, channels = img.shape
-    # cv2.imshow('Original', img)
-    # cv2.waitKey(0)
     if height << y:
         diff = y - height
         difftoo = x - width
         corrected_img = cv2.copyMakeBorder(img, 0, diff, 0, difftoo,  cv2.BORDER_CONSTANT, value=[0,0,0])
-        # cv2.imshow('Corrected', corrected_img)
-        # cv2.waitKey(0)
         cv2.imwrite(path + image[:-4] + ".jpg", corrected_img)
     elif width << x:
         diff = y - height
@@ -45,39 +40,25 @@ def crop_images(x, y, path, save_path, annotations=True):
         shutil.copy(path + "classes.txt", save_path)
     else:
         pass
-    # get all images in path
     images = os.listdir(path)
-        # loop over images
     for image in images:
-        # read image
         if image.endswith(".jpg"):
             img = cv2.imread(path + image)
-            # get image dimensions
             height, width, channels = img.shape
-            # loop over image
             for i in range(0, height, y):
                 for j in range(0, width, x):
-                    # crop image
                     crop_img = img[i:i+y, j:j+x]
-                    # set new name
                     new_name = image[:-4] + '_' + str(i) + '_' + str(j)
-                    # save image
                     cv2.imwrite(save_path + new_name + ".jpg", crop_img)
-                    # adapt annotation
                     if annotations == True:
                         change_annotation(i, j, x, y, height, width, path, image, new_name, save_path)
                     else:
                         pass
                 img = cv2.imread(path + image)
-            # get image dimensions
             height, width, channels = img.shape
-            # loop over height
             for i in range(0, height, y):
-              # loop over width
                  for j in range(0, width, x):
-                    # crop image
                     crop = img[i:i+y, j:j+x]
-                   # save image
                     cv2.imwrite(save_path + image[:-4] + '_' + str(i) + '_' + str(j) + '.jpg', crop)
         else:
             pass
@@ -98,16 +79,13 @@ def del_top_n_bottom_parts(path, save_path, annotations=True):
 def increase_brightness(img, value=30):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)
-
     lim = 255 - value
     v[v > lim] = 255
     v[v <= lim] += value
-
     final_hsv = cv2.merge((h, s, v))
     img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
     return img
 
-# remove backgroun of image using image of background
 def background_removal_with_alpha_sub(original_img, bacground_img, alpha=0.5):
     img = cv2.imread(original_img)
     background = cv2.imread(bacground_img)

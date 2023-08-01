@@ -3,8 +3,8 @@ import tqdm
 import subprocess
 import warnings
 import pandas as pd
-from annotations import *
-from reports import *
+from code.helper.annotations import *
+from code.helper.reports import *
 
 def train_easy(obj_data="/home/as-hunt/Etra-Space/white-thirds/obj.data", cfg="/home/as-hunt/Etra-Space/white-thirds/yolov4.cfg", model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show"):
     '''Trains a model with the given parameters
@@ -31,6 +31,7 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     obj_data = dir + "obj.data"
     cfg_10 = dir + "yolov4_10.cfg"
     backup = dir + "backup/"
+    names = dir + "obj.names"
     if not os.path.exists(backup):
         os.makedirs(backup)
     temp = dir + "temp/"
@@ -49,7 +50,7 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
         subprocess.run(['mv', backup + 'yolov4_10_final.weights', backup + 'yolov4_' + str(epoch) + '.weights'])
         new_weights = backup + "yolov4_" + str(epoch) + ".weights"
         os.system("darknet detector test " + obj_data + " " + cfg_10 + " " + new_weights + " -dont_show -ext_output < " + test_file + " > " + temp_file + " 2>&1")
-        import_results_2(temp_file, temp + 'results_' + str(epoch) + '.txt')
+        import_results_neo(temp_file, temp + 'results_' + str(epoch) + '.txt', names)
         F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(epoch) + '.txt', 'export_' + str(epoch), False, ['ECHY', 'ERY', 'LYM', 'MON', 'NEU', 'PLT'], False)
         li.append([epoch, F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro])
         os.system("rm " + temp + "results_" + str(epoch) + ".txt")
@@ -66,6 +67,7 @@ def get_info(data_path, model_path, model_name, output_report, sava_annotations=
     cfg = model_path + 'yolov4_10.cfg'
     weights = model_path + 'backup/' + model_name
     data = model_path + 'obj.data'
+    names = model_path + 'obj.names'
     temp_path = data_path + 'temp/'
     if os.path.exists(temp_path) == True:
         pass
@@ -125,10 +127,7 @@ def get_info(data_path, model_path, model_name, output_report, sava_annotations=
             f.write('Counted ' + str(len(neu)) + ' neutrophils\n')
             f.write('Average confidence: ' + str(round(float(neu['Confidence'].mean()), 2)) + '\n')
     if sava_annotations == True:
-        if len(wbc) != 0:
-            import_and_filder_results(temp_path + 'result.txt', temp_path + 'results.txt')
-        else:
-            import_and_filder_result_2(temp_path + 'result.txt', temp_path + 'results.txt')   
+        import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)   
         with open(temp_path + 'results.txt') as f:
             for line in f:
                 item = line.split()

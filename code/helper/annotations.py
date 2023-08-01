@@ -25,7 +25,7 @@ def add_bbox(image, bbox, classes):
     elif classes == 2:
         colour = (255,0,0) #blue
     elif classes == 3:
-        colour = (255,0,255) #fushia 
+        colour = (255,0,255) #fuchsia 
     elif classes == 4:
         colour = (255,255,0) #yellow
     elif classes == 5:
@@ -102,7 +102,7 @@ def iou(bb1, bb2):
 
     # compute the intersection over union by taking the intersection
     # area and dividing it by the sum of prediction + ground-truth
-    # areas - the interesection area
+    # areas - the intersection area
     iou = intersection_area / float(bb1_area + bb2_area - intersection_area)
     assert iou >= 0.0
     assert iou <= 1.0
@@ -171,7 +171,7 @@ def get_prediction_mistakes(gt_file, pd_file, path_to_images, save_directory):
                     cv2.imwrite(save_directory + name + '.jpg', img)        
 
 def import_results_neo(input_file='result.txt', results_file='results.txt', obj_names='/home/as-hunt/Etra-Space/white-thirds/obj.names'):
-    '''Import's Yolo darknet detection results and filters bouding 
+    '''Import's Yolo darknet detection results and filters bounding 
     boxes that are outside of the image dimensions
     This function will use the index given to darknet 
     when training the model to determine the class of the object
@@ -215,7 +215,7 @@ def import_results_neo(input_file='result.txt', results_file='results.txt', obj_
             else:
                 pass 
 
-def make_ground_truth(ground_truth_file='gt.txt', test_folder='/home/as-hunt/Etra-Space/new_data_sidless/valid/'):
+def make_ground_truth(ground_truth_file='gt.txt', test_folder='valid/'):
     '''Creates a ground truth file from the annotations in a given folder'''
     gt_file = open(ground_truth_file, 'w')
     for file in os.listdir(test_folder):
@@ -285,7 +285,7 @@ def make_ground_truth(ground_truth_file='gt.txt', test_folder='/home/as-hunt/Etr
                                         gt_file.write(img_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' \n')
                                         count += 1
 
-def make_ground_truth_unfiltered(ground_truth_file='gt.txt', test_folder='/home/as-hunt/Etra-Space/new_data_sidless/valid/'):
+def make_ground_truth_unfiltered(ground_truth_file='gt.txt', test_folder='valid/'):
     '''Creates a ground truth file from the annotations in a given folder, this function filters by the image dimensions limits'''
     gt_file = open(ground_truth_file, 'w')
     for file in os.listdir(test_folder):
@@ -335,11 +335,11 @@ def make_ground_truth_unfiltered(ground_truth_file='gt.txt', test_folder='/home/
                         gt_file.write(img_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' \n')
 
 def import_and_filter_result_neo(input_file='/home/as-hunt/result.txt', results_file='results.txt', obj_names='/home/as-hunt/Etra-Space/white-thirds/obj.names'):
-    '''Import's Yolo darknet detection results bouding boxes.
+    '''Import's Yolo darknet detection results bounding boxes.
 
     This function does filters the result.txt file. 
-    It removes bouding boxes that are outside the image and
-    bouding boxes that are too close to the edge of the image.
+    It removes bounding boxes that are outside the image and
+    bounding boxes that are too close to the edge of the image.
 
       Args:
         input_file (str): The path to the results.txt file

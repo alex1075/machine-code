@@ -6,7 +6,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.metrics import classification_report, accuracy_score, f1_score, precision_score, recall_score, fbeta_score
 import matplotlib.pyplot as plt
-from annotations import *
+from code.helper.annotations import *
 
 def count_classes_file(test_file='/home/as-hunt/Etra-Space/new_data_sidless/gt.txt', chart=False, chart_name='chart.png', labs=['1', '2', '3']):
     class_1 = 0
@@ -265,6 +265,14 @@ def export_errors(gt_file, pd_file, save_name='Error_', save_path='/home/as-hunt
                     gt_array.pop(place)     
 
 def make_training_graphs(csv_file="/home/as-hunt/Etra-Space/white-thirds/output.csv", dir="/home/as-hunt/Etra-Space/white-thirds/"):
+    '''This function takes in a csv file and outputs graphs of the training metrics
+    _____________________________________________________________
+    Args:
+    
+    csv_file: path to the csv file
+    dir: path to save the output files
+    ______________________________________________________________
+    '''
     df = pd.read_csv(csv_file)
     fig, axs = plt.subplots(2, 2)        
     fig.set_size_inches(16, 10)

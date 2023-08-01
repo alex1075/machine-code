@@ -1,4 +1,3 @@
-from turtle import st
 import cv2
 import re
 import glob, os, datetime
@@ -9,10 +8,11 @@ from code.helper.imageTools import *
 from code.helper.annotations import *
 import shutil
 import pandas as pd
+import tqdm
 from sklearn.model_selection import train_test_split
 
 
-def convert(path_to_folder='/Volumes/PhD/PhD/Data/'):
+def convert(path_to_folder='Data/', save_to_new=False, save_path='temp/'):
     for infile in os.listdir(path_to_folder):
         print ("file : " + infile)
         if infile[-3:] == "bmp":
@@ -21,180 +21,132 @@ def convert(path_to_folder='/Volumes/PhD/PhD/Data/'):
             im = Image.open(path_to_folder + infile)
             print ("new filename : " + outfile)
             out = im.convert("RGB")
-            out.save(path_to_folder + outfile, "jpeg", quality=100)
+            if save_to_new == True:
+                out.save(save_path + outfile, "jpeg", quality=100)
+            else:
+                out.save(path_to_folder + outfile, "jpeg", quality=100)
             os.remove(path_to_folder + infile)
         elif infile[-4:] == "tiff":
             print ("is tiff")
             outfile = infile[:-4] + "jpg"
             im = Image.open(path_to_folder + infile)
             out = im.convert("RGB")
-            out.save(path_to_folder + outfile, "jpeg", quality=100)
+            if save_to_new == True:
+                out.save(save_path + outfile, "jpeg", quality=100)
+            else:
+                out.save(path_to_folder + outfile, "jpeg", quality=100)
             os.remove(path_to_folder + infile)
         elif infile[-3:] == "png":
             print ("is png")
             outfile = infile[:-3] + "jpg"
             img = cv2.imread(path_to_folder + infile)
             print(path_to_folder + outfile)
-            cv2.imwrite(path_to_folder + outfile, img)
+            if save_to_new == True:
+                cv2.imwrite(save_path + outfile, img)
+            else:
+                cv2.imwrite(path_to_folder + outfile, img)
             os.remove(path_to_folder + infile)
         elif infile[-3:] == "jpg" or infile[-3:] == "jpeg":
-            print ("is jpg, no change")
+            shutil.copy(path_to_folder + infile, save_path + infile)
+            os.remove(path_to_folder + infile)
         else:
-            print ("Not an image")
+            pass
 
 #Cycles through iamges in path_to_folder and resize them the desired size
-def resizeAllJpg(path_to_folder='/Volumes/PhD/PhD/Data/', newhight=1080, newwid=1080):
+def resizeAllJpg(path_to_folder='Data/', newhight=1080, newwid=1080):
   jpgs = glob.glob(path_to_folder + '*.jpg')
   for image in jpgs:
-      print ("resizing image" + image)
       name_without_extension = os.path.splitext(image)[0]
       img = cv2.imread(image)
       resized, newheight, newwidth = resizeTo(img, newhight, newwid)
       cv2.imwrite(name_without_extension + ".jpg", resized)
 
 #Cycles through videos in path_to_folder and outputs jpg to out_folder
-def convertVideoToImage(path_to_folder='/Volumes/PhD/PhD/Video/', out_folder='/Volumes/PhD/PhD/Data/'):
+def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
     for fi in os.listdir(path_to_folder):
         nam, ext = os.path.splitext(fi)
-        if ext == '.mp4':
+        if fi.endswith('.mp4'):
             cam = cv2.VideoCapture(path_to_folder + fi)
+            all_frames = int(cam.get(cv2.CAP_PROP_FRAME_COUNT)) 
             try:
-                # creating a folder named data
                 if not os.path.exists(out_folder):
                     os.makedirs(out_folder)
-            # if not created then raise error
             except OSError:
-                print ('Error: Creating directory of' + out_folder)
-            # frame
+                pass
             currentframe = 0
-            while(True):
-                # reading from frame
-                ret,frame = cam.read()
-                if ret:
-                    # if video is still left continue creating images
-                    name = out_folder + nam + '_frame_' + str(currentframe) + '.jpg'
-                    print ('Creating...' + name)
-                    # writing the extracted images
-                    cv2.imwrite(name, frame)
-                    # increasing counter so that it will
-                    # show how many frames are created
-                    currentframe += 1
-                else:
-                    break
-            # Release all space and windows once done
+            with tqdm.tqdm(total=all_frames) as pbar:
+                while(True):
+                    ret,frame = cam.read()
+                    if ret:
+                        name = out_folder + nam + '_frame_' + str(currentframe) + '.jpg'
+                        cv2.imwrite(name, frame)
+                        currentframe += 1
+                        pbar.update(1)
+                    else:
+                        break
+            pbar.close()        
             cam.release()
             cv2.destroyAllWindows()
 
-def normalise(path_to_folder=r'/Volumes/PhD/PhD/Data/'):
-    jpgs = glob.glob(path_to_folder + '*.jpg')
-    for infile in jpgs:
-        print ("file : " + infile)
-        flute = cv2.imread(infile)
-        print ("Normalising " + infile)
-        im = normaliseImg(flute)
-        cv2.imwrite(path_to_folder + infile, im)
-
-def randomCrop(path_to_folder='/Volumes/PhD/PhD/Data/', outfolder='/Volumes/PhD/PhD/Dataset/', crop_height=256, crop_width=256):
-    jpgs = glob.glob(path_to_folder + '*.jpg')
-    for jpg in jpgs:
-        print("randomly cropping: " + jpg)
-        flute = cv2.imread(jpg, 0)
-        jpg_name = jpg.split('/')[-1]
-        infile = jpg_name[:-4] + "_cropped_" + str(datetime.datetime.now()) + ".jpg"
-        print(infile)
-        im = getRandomCrop(flute, crop_height, crop_width)
-        cv2.imwrite(outfolder + infile, im)
-
-def convert2Gray(path_to_folder='/Volumes/PhD/PhD/Dataset/'):
+def convert2Gray(path_to_folder='Dataset/'):
     jpgs = glob.glob(path_to_folder  + '*.jpg')
     for jpg in jpgs:
-        print('Converting to grayscale: ' + jpg)
         flute = cv2.imread(jpg, 0)
-        print(flute.shape)
         cv2.imwrite(jpg, flute)
 
 def variance_of_laplacian(image):
-	# compute the Laplacian of the image and then return the focus
-	# measure, which is simply the variance of the Laplacian
 	return cv2.Laplacian(image, cv2.CV_64F).var()
 
-def detectBlurr(path_to_folder='/Volumes/PHD/', threshold=100.0):
+def detectBlurr(path_to_folder='', threshold=100.0):
     file = open(path_to_folder + 'recap.txt', "w")
     file.write('Threshold: ' + str(threshold) + '\n')
-    print('Detecting blurr')
-   # loop over the input images
     for imagePath in paths.list_images(path_to_folder):
-        # load the image, convert it to grayscale, and compute the
-        # focus measure of the image using the Variance of Laplacian
-        # method
-        print("Checking image: " + imagePath)
         image = cv2.imread(imagePath)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         fm = variance_of_laplacian(gray)
         text = 'Not Blurry'
- 
-        # if the focus measure is less than the supplied threshold,
-        # then the image should be considered "blurry"
         if fm < threshold:
             text = 'Blurry'
-            print(imagePath)
-            # file.write(fm + "<" + threshold + '\n')
-            file.write('Below threshold' + imagePath + '\n')
-        # print(image)
-    
+            file.write('Below threshold' + imagePath + '\n')    
     file.close()
 
-def iterateBlur(path_to_folder='/Volumes/PHD/', start=0, end=100, step=5):
+def iterateBlur(path_to_folder='', start=0, end=100, step=5):
     for i in range(start, end, step):
         print('Threshold: ' + str(i))
         detectBlurr(path_to_folder, threshold=i)
 
-def detectAndMoveBlurr(path_to_folder='/Volumes/PHD/', threshold=100.0, currentstep=110, outfolder='/Volumes/PHD/sorted/'):
+def detectAndMoveBlurr(path_to_folder='', threshold=100.0, currentstep=110, outfolder='sorted/'):
     file = open(outfolder + 'recap.txt', "w")
     file.write('Threshold: ' + str(threshold) + '\n')
     print('Detecting blurr')
     os.makedirs(outfolder + 'threshold_' + str(threshold), exist_ok=True)
-   # loop over the input images
     for imagePath in paths.list_images(path_to_folder):
-        # load the image, convert it to grayscale, and compute the
-        # focus measure of the image using the Variance of Laplacian
-        # method
         print("Checking image: " + imagePath)
         image = cv2.imread(imagePath)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         fm = variance_of_laplacian(gray)
-        # if the focus measure is less than the supplied threshold,
-        # then the image should be considered "blurry"
         if fm < threshold & threshold < currentstep:
             print(imagePath)
-            # file.write(fm + "<" + threshold + '\n')
             file.write('Below threshold' + imagePath + '\n')
             shutil.copy(imagePath, outfolder + 'threshold_' + str(threshold))
             os.remove(imagePath)
             print("Moved " + imagePath)
             file.write('Moved ' + imagePath + ' to folder' + '\n')
-
     file.close()
 
-def iterateBlurMove(path_to_folder='/Volumes/PHD/', outfolder='/Volumes/PHD/sorted/', start=0, end=100, step=5):
+def iterateBlurMove(path_to_folder='', outfolder='sorted/', start=0, end=100, step=5):
     for i in range(start, end, step):
         print('Threshold: ' + str(i))
         currentstep = str(range) + str(step)
         detectAndMoveBlurr(path_to_folder, threshold=i, currentstep=currentstep, outfolder=outfolder)
 
-def selectIMG(path_to_folder='/Volumes/PHD/sorted/', outfolder='/Volumes/PHD/sorted/', number=200):
-    randomSelect(path_to_folder, outfolder, number)
-
-def chopUpDataset(path_to_folder='/Users/alexanderhunt/Preprocessing/test_dataset/', outfolder='/Users/alexanderhunt/Preprocessing/output/', x=416, y=416, annotations=True):
+def chopUpDataset(path_to_folder='test_dataset/', outfolder='output/', x=416, y=416, annotations=True):
     crop_images(x, y, path_to_folder, outfolder, annotations)
     if annotations == True:
         remove_non_annotated(outfolder)
     else:
         pass
     checkAllImg(outfolder, x, y)
-
-# def batchBackgroundRemove(path_to_folder='output/', background_folder='background/', outfolder='/Volumes/PHD/removed/'):
-#     return print('Not implemented yet')
 
 def batchBackgroundRemove(path_to_folder='output/', background_folder='backgrounds/', outfolder='data_4/', alpha=2):
     list_img=[img for img in os.listdir(path_to_folder) if img.endswith('.jpg')==True]
