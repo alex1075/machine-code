@@ -5,7 +5,6 @@ from code.helper.annotations import *
 from code.helper.imageTools import *
 from code.helper.utils import *
 from code.helper.yolo import *
-
 def main():
     print('Main machine interface, what do you wish to do?')
     print('1. Convert multimedia data to JPEG images')
@@ -49,7 +48,7 @@ def main():
         print('Use temp folder? (y/n)')
         temp = input()
         if temp == 'y':
-            chopUpDataset(path, tempFolder='temp/')
+            
         else:
             print('Enter the path to the output folder: ')
             print('Remember to use quotation marks and end the path with a /')
