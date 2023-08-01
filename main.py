@@ -5,6 +5,9 @@ from code.helper.annotations import *
 from code.helper.imageTools import *
 from code.helper.utils import *
 from code.helper.yolo import *
+from code.helper.config import *
+
+
 def main():
     print('Main machine interface, what do you wish to do?')
     print('1. Convert multimedia data to JPEG images')
@@ -48,12 +51,17 @@ def main():
         print('Use temp folder? (y/n)')
         temp = input()
         if temp == 'y':
-            
+            temp = 'temp/'
+            import_names(path, True, temp)
+            prepare_cfg('code/data/yolov4.cfg', temp + 'obj.names', temp, 100, 'yolov4_10.cfg')
+            make_obj_data(path, True, temp)
         else:
             print('Enter the path to the output folder: ')
             print('Remember to use quotation marks and end the path with a /')
             out = input()
-            chopUpDataset(path, outFolder=out)
+            import_names(path, True, out)
+            prepare_cfg('code/data/yolov4.cfg', out + 'obj.names', out, 100, 'yolov4_10.cfg')
+            make_obj_data(path, True, out)
     elif a == '3':
         print('Training a model')
         print('Do you wish to prepare the folder first? (y/n)')

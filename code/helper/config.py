@@ -1,5 +1,18 @@
 import os 
 
+def prep(file="train.txt", path="/home/as-hunt/Etra-Space/white-thirds/train/"):
+    '''Prepares a txt file for training
+
+    args:
+    file: the name of the file to be created
+    path: the path to the folder containing the images
+    '''
+    filoo = open(path + file, 'w')
+    for image in os.listdir(path):
+        if image.endswith(".jpg"):
+            filoo.write(path + image + "\n")
+    filoo.close()
+
 def change_line(file, line_number, text, save_as_new_file=False, new_file_name='yolo_temp.cfg'):
     '''Changes a specific line within a text file
     
@@ -31,7 +44,7 @@ def make_obj_names(names=['ECHY', 'ERY', 'LYM', 'MON', 'NEU', 'PLT'], path='temp
             for name in names:
                 f.write(name + '\n')
 
-def import_names(path_to_data):
+def import_names(path_to_data, save_elsewhere=False, save_path='temp/'):
     '''Imports the names from a folder containing the data for training
 
     args:
@@ -44,12 +57,18 @@ def import_names(path_to_data):
             with open(path_to_data + file) as f:
                 for line in f:
                     names.append(line.strip())
-                    make_obj_names(names, path_to_data)
+                    if save_elsewhere == True:
+                        make_obj_names(names, save_path)
+                    else:
+                        make_obj_names(names, path_to_data)
         elif file == '_darknet.labels':
             with open(path_to_data + file) as f:
                 for line in f:
                     names.append(line.strip())
-                    make_obj_names(names, path_to_data)
+                    if save_elsewhere == True:
+                        make_obj_names(names, save_path)
+                    else:
+                        make_obj_names(names, path_to_data)
         else:
             pass           
 
@@ -75,3 +94,61 @@ def prepare_cfg(template_cfg='code/data/yolov4.cfg', obj_names='temp/obj.names',
     change_line(output_folder + output_name, 1138, 'filters = ' + str(filters) + '\n')
     change_line(output_folder + output_name, 1145, 'classes = ' + str(count) + '\n')
 
+def make_obj_data(path_to_data, save_elsewhere=False, save_path='temp/'):
+    '''Creates the obj.data file for training
+    will read the folder passed to find the number of classes
+    the presence of the train, test, valid and backup folders
+
+    If the backup folder does not exist, it will be created
+
+    It will check for the presence of the train.txt, test.txt 
+    and valid.txt files. If they do not exist, they will be created
+
+    args:
+    path_to_data: the path to the folder containing the data
+    save_elsewhere: if True, the file will be saved elsewhere
+    save_path: the path to save the file to
+    '''
+    os.chdir(path_to_data)
+    if os.path.exists(path_to_data + 'obj.data'):
+        count = len(open(path_to_data + 'obj.names').readlines + 1)
+        names = os.getcwd(path_to_data + 'obj.names')
+    if os.path.exists(path_to_data + 'train/'):
+        if os.path.exists(path_to_data + 'train/train.txt'):
+            train = os.getcwd(path_to_data + 'train/train.txt')
+        else:
+            prep('train.txt', path_to_data + 'train/')
+            train = os.getcwd(path_to_data + 'train/train.txt')
+    if os.path.exists(path_to_data + 'test/'):
+        if os.path.exists(path_to_data + 'test/test.txt'):
+            test = os.getcwd(path_to_data + 'test/test.txt')
+        else:
+            prep('test.txt', path_to_data + 'test/')
+            test = os.getcwd(path_to_data + 'test/test.txt')
+    if os.path.exists(path_to_data + 'valid/'):
+        if os.path.exists(path_to_data + 'valid/valid.txt'):
+            valid = os.getcwd(path_to_data + 'valid/valid.txt')
+        else:
+            prep('valid.txt', path_to_data + 'valid/')
+            valid = os.getcwd(path_to_data + 'valid/valid.txt')
+    if os.path.exists(path_to_data + 'backup/'):
+        backup = os.getcwd(path_to_data + 'backup/')
+    else:
+        os.mkdir('backup')
+        backup = os.getcwd(path_to_data + 'backup/')
+    if save_elsewhere == True:
+        with open(save_path + 'obj.data', 'w') as f:
+            f.write('classes = ' + str(count) + '\n')
+            f.write('train = ' + train + '\n')
+            f.write('valid = ' + valid + '\n')
+            f.write('# valid = ' + test + '\n')
+            f.write('names = ' + names + '\n')
+            f.write('backup = ' + backup + '\n')
+    else:
+        with open(path_to_data + 'obj.data', 'w') as f:
+            f.write('classes = ' + str(count) + '\n')
+            f.write('train = ' + train + '\n')
+            f.write('valid = ' + valid + '\n')
+            f.write('# valid = ' + test + '\n')
+            f.write('names = ' + names + '\n')
+            f.write('backup = ' + backup + '\n')
