@@ -5,10 +5,13 @@ from code.helper.annotations import *
 from code.helper.imageTools import *
 from code.helper.utils import *
 from code.helper.yolo import *
+from code.helper.fancy import *
 from code.helper.config import *
 
 
 def main():
+    display_banner()
+    selection_program()
     print('Main machine interface, what do you wish to do?')
     print('1. Convert multimedia data to JPEG images')
     print('2. Prepare a dataset for training (image cropping, annotation file modification, etc)')
