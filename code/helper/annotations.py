@@ -402,6 +402,30 @@ def import_and_filter_result_neo(input_file='/home/as-hunt/result.txt', results_
             else:
                 pass                    
 
+def check_all_annotations_for_duplicates(annotation_file):
+    start = []
+    with open(annotation_file, 'r') as f:
+        lines = f.readlines()
+        for line in lines:
+            l = line.split(' ')
+            image_name, classes, left_x, top_y, right_x, bottom_y, confidence = l[0], l[1], l[2], l[3], l[4], l[5], l[6]
+            start.append([image_name, classes, left_x, top_y, right_x, bottom_y, confidence])
+    for item in start:
+        with open(annotation_file, 'a+') as f:
+            lines = f.readlines()
+            for line in lines:
+                l = lines.split(' ')
+                if item[0] == l[0]:
+                    bbox_1 = [int(item[2]), int(item[3]), int(item[4]), int(item[5])]
+                    bbox_2 = [int(l[2]), int(l[3]), int(l[4]), int(l[5])]
+                    if iou(bbox_1, bbox_2) > 0.5:
+                        if item[6] > l[6]:
+                            lines.remove(line)
+                        elif item[6] < l[6]:
+                            start.remove(item)
+                        elif item[6] == l[6]:
+                            start.remove(item)
+
 def del_edge_bbox_train(results_folder):
     for file in os.listdir(results_folder):
         if file.endswith('classes.txt'):

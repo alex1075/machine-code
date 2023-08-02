@@ -63,7 +63,7 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     print("Training complete. Epochs: " + str(epoch))    
     pd.DataFrame(df).to_csv(dir + 'output.csv', index=False)
 
-def get_info(data_path, model_path, model_name, output_report, sava_annotations=False):
+def get_info(data_path, model_path, model_name, sava_annotations=False):
     cfg = model_path + 'yolov4_10.cfg'
     weights = model_path + 'backup/' + model_name
     data = model_path + 'obj.data'
@@ -102,7 +102,9 @@ def get_info(data_path, model_path, model_name, output_report, sava_annotations=
     lym = df.loc[df['Cell type'] == 'LYM']
     mon = df.loc[df['Cell type'] == 'MON']
     neu = df.loc[df['Cell type'] == 'NEU']
-    with open(output_report) as f:
+    if os.path.exists(os.getcwd() + '/report.txt') == True:
+        os.remove(os.getcwd() + '/report.txt')
+    with open(os.getcwd() + '/report.txt', 'x') as f:
         f.write('Counted ' + str(len(df)) + ' cells\n')
         f.write('Overall average confidence: ' + str(round(float(df['Confidence'].mean()), 2)) + '\n')
         if len(ery) != 0:
@@ -127,7 +129,8 @@ def get_info(data_path, model_path, model_name, output_report, sava_annotations=
             f.write('Counted ' + str(len(neu)) + ' neutrophils\n')
             f.write('Average confidence: ' + str(round(float(neu['Confidence'].mean()), 2)) + '\n')
     if sava_annotations == True:
-        import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)   
+        import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
+        check_all_annotations_for_duplicates(temp_path + 'results.txt')   
         with open(temp_path + 'results.txt') as f:
             for line in f:
                 item = line.split()

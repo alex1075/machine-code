@@ -30,14 +30,15 @@ def main():
                 if file.endswith('.mp4'):
                     convertVideoToImage(path, 'temp/')
                     print('Video converted')
-                    print('Do you wish to cut the images into 416x416 pixels? (y/n)')
-                    cut = input()
+                    cut = input('Do you wish to cut the images into 416x416 pixels? (y/n)')
+                    ann = input('Is the data annotated? (y/n)')
                     if cut == 'y':
-                        ann = input('Is the data annotated? (y/n)')
                         if ann == 'y':
                             chopUpDataset('temp/', 'temp2/', 416, 416, True)
-                        else:
+                        elif ann == 'n':
                             chopUpDataset('temp/', 'temp2/', 416, 416, False)
+                    elif cut == 'n':
+                        pass
                 elif file.endswith('.png') or file.endswith('.tiff') or file.endswith('.bmp') or file.endswith('.jpg'):
                     convert(path, True, 'temp/')
                     print('Images converted')
@@ -49,19 +50,20 @@ def main():
                             chopUpDataset('temp/', 'temp/', 416, 416, True)
                         elif ann == 'n':
                             chopUpDataset('temp/', 'temp/', 416, 416, False)
+                    elif cut == 'n':
+                        pass
                 else:
                     print('File type not supported')
             elif temp == 'n':
                 print('Enter the path to the output folder: ')
                 print('Remember to use quotation marks and end the path with a /')
                 out = input()
-                print('Do you wish to cut the images into 416x416 pixels? (y/n)')
-                cut = input()
+                cut = input('Do you wish to cut the images into 416x416 pixels? (y/n)')
+                ann = input('Is the data annotated? (y/n)')
                 if file.endswith('.mp4'):
                     if cut == 'y':
                         convertVideoToImage(path, 'temp/')
                         print('Video converted')
-                        ann = input('Is the data annotated? (y/n)')
                         if ann == 'y':
                             chopUpDataset('temp/', out, 416, 416, True)
                         elif ann == 'n':
@@ -73,7 +75,6 @@ def main():
                     if cut == 'y':
                         convert(path, True, 'temp/')
                         print('Images converted')
-                        ann = input('Is the data annotated? (y/n)')
                         if ann == 'y':
                             chopUpDataset('temp/', out, 416, 416, True)
                         elif ann == 'n':
@@ -160,16 +161,13 @@ def main():
             print('Enter the name of the model to use: ')
             print('Remember to use quotation marks')
             name = input()
-            print('Enter the path to the output folder: ')
-            print('Remember to use quotation marks and end the path with a /')
-            out = input()
             print('Do you want to save generated labels? (y/n)')
             a = input()
             if a == 'y':
                 save = True
             else:
                 save = False
-            get_info(path, model, name, out, save)
+            get_info(path, model, name, save)
         else:
             print('Analyzing data over the network is not yet supported')
     elif a == '6':
