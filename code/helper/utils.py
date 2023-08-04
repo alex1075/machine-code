@@ -2,6 +2,16 @@ import cv2
 import os
 import decimal
 import tqdm
+from code.helper.config import *
+
+def check_full_path(path):
+    if os.path.isabs(path) == True:
+        return path
+    else:
+        if os.path.isabs(os.getcwd() + '/' + path) == True:
+            return os.getcwd() + '/' + path
+        else:
+            raise Exception('Path not found')
 
 
 #Grabs biggest dimension and scales the photo so that max dim is now 1280
@@ -89,11 +99,48 @@ def split_img_label(data_train,data_test,folder_train,folder_test):
         os.system('cp '+data_test[test_ind[j]].split('.jpg')[0]+'.txt'+'  ./'+ folder_test + '/'  +data_test[test_ind[j]].split('/')[2].split('.jpg')[0]+'.txt')  
 
 def import_images_from_roboflow(url, path):
-    os.system('curl '+url+' > roboflow.zip; unzip roboflow.zip; rm roboflow.zip')
-    os.system('mv train '+path)
-    os.system('mv test '+path)
-    os.system('mv valid '+path)
-    os.system('mv train/_darknet.labels '+path + 'obj.names')
-    os.system('rm README.roboflow.txt')
-    os.system('rm README.dataset.txt')
+    os.system('curl -L -s '+url+' > roboflow.zip')
+    os.system('unzip -qq roboflow.zip')
+    os.system('rm roboflow.zip')
+    if os.path.exists('train/') == True:
+        os.system('mv train '+path)
+        os.system('mv ' + path + 'train/_darknet.labels '+path)
+    if os.path.exists('test/') == True:
+        os.system('mv test '+path)
+        if os.path.exists(path+'train/') == True:
+            pass
+        else:
+            os.system('mv ' + path + 'test/_darknet.labels '+path)
+    if os.path.exists('valid/') == True:
+        os.system('mv valid '+path)
+        if os.path.exists(path+'train/') == True:
+            if os.path.exists(path+'test/') == True:
+                pass
+            else:
+                pass
+        else:
+            os.system('mv ' + path + 'valid/_darknet.labels '+path)
+    import_names(path, False)
+    try:
+        os.system('rm README.roboflow.txt')
+    except:
+        pass
+
+def prepare_training(url, path):
+    if os.path.exists(path) == True:
+        raise Exception('Path already exists')
+    else:
+        os.mkdir(path)
+    import_images_from_roboflow(url, path)
+    if os.path.exists(path+'train/') == True:
+        remove_non_annotated(path + 'train/')
+        prep(path + 'train/', 'train.txt')
+    if os.path.exists(path+'test/') == True:
+        remove_non_annotated(path + 'test/')
+        prep(path + 'test/', 'test.txt')
+    if os.path.exists(path+'valid/') == True:
+        remove_non_annotated(path + 'valid/')
+        prep(path + 'valid/', 'valid.txt')
+    prepare_cfg('code/data/yolov4.cfg', path + 'obj.names', path, 10, 'yolov4_10.cfg')
+    make_obj_data(path, False)
     

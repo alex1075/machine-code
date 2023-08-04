@@ -1,6 +1,6 @@
 import os 
 
-def prep(file="train.txt", path="/home/as-hunt/Etra-Space/white-thirds/train/"):
+def prep(path="/home/as-hunt/Etra-Space/white-thirds/train/", file="train.txt"):
     '''Prepares a txt file for training
 
     args:
@@ -61,6 +61,8 @@ def import_names(path_to_data, save_elsewhere=False, save_path='temp/'):
                         make_obj_names(names, save_path)
                     else:
                         make_obj_names(names, path_to_data)
+                        if os.path.exists(path_to_data + file) == True:
+                            os.remove(path_to_data + file)
         elif file == '_darknet.labels':
             with open(path_to_data + file) as f:
                 for line in f:
@@ -69,6 +71,8 @@ def import_names(path_to_data, save_elsewhere=False, save_path='temp/'):
                         make_obj_names(names, save_path)
                     else:
                         make_obj_names(names, path_to_data)
+                        if os.path.exists(path_to_data + file) == True:
+                            os.remove(path_to_data + file)
         else:
             pass           
 
@@ -85,14 +89,14 @@ def prepare_cfg(template_cfg='code/data/yolov4.cfg', obj_names='temp/obj.names',
         names = f.readlines()
         count = len(names) 
     filters = ((count + 5) * 3)    
-    change_line(template_cfg, 19, 'max_batches = ' + str(epochs_to_run_for) + '\n', True, output_folder + output_name)
-    change_line(output_folder + output_name, 21, 'steps = ' + str(round(epochs_to_run_for * 0.8)) + ',' + str(round(epochs_to_run_for * 0.9)) + '\n')
-    change_line(output_folder + output_name, 962, 'filters = ' + str(filters) + '\n')
-    change_line(output_folder + output_name, 969, 'classes = ' + str(count) + '\n')
-    change_line(output_folder + output_name, 1050, 'filters = ' + str(filters) + '\n')
-    change_line(output_folder + output_name, 1057, 'classes = ' + str(count) + '\n')
-    change_line(output_folder + output_name, 1138, 'filters = ' + str(filters) + '\n')
-    change_line(output_folder + output_name, 1145, 'classes = ' + str(count) + '\n')
+    change_line(template_cfg, 19, 'max_batches=' + str(epochs_to_run_for) + '\n', True, output_folder + output_name)
+    change_line(output_folder + output_name, 21, 'steps=' + str(round(epochs_to_run_for * 0.8)) + ',' + str(round(epochs_to_run_for * 0.9)) + '\n')
+    change_line(output_folder + output_name, 962, 'filters=' + str(filters) + '\n')
+    change_line(output_folder + output_name, 969, 'classes=' + str(count) + '\n')
+    change_line(output_folder + output_name, 1050, 'filters=' + str(filters) + '\n')
+    change_line(output_folder + output_name, 1057, 'classes=' + str(count) + '\n')
+    change_line(output_folder + output_name, 1138, 'filters=' + str(filters) + '\n')
+    change_line(output_folder + output_name, 1145, 'classes=' + str(count) + '\n')
 
 def make_obj_data(path_to_data, save_elsewhere=False, save_path='temp/'):
     '''Creates the obj.data file for training
@@ -110,31 +114,35 @@ def make_obj_data(path_to_data, save_elsewhere=False, save_path='temp/'):
     save_path: the path to save the file to
     '''
     os.chdir(path_to_data)
-    if os.path.exists(path_to_data + 'obj.data'):
+    if save_elsewhere == False:
         count = len(open(path_to_data + 'obj.names').readlines()) 
         names = path_to_data + 'obj.names'
-    else:
+    elif save_elsewhere == True:
         names = path_to_data + 'obj.names'
         count = len(open(save_path + 'obj.names').readlines()) 
-    if os.path.exists(path_to_data + 'train/'):
-        if os.path.exists(path_to_data + 'train/train.txt'):
+    if os.path.exists(path_to_data + 'train/') == True:
+        if os.path.exists(path_to_data + 'train/train.txt') == True:
             train = path_to_data + 'train/train.txt'
         else:
-            prep('train.txt', path_to_data + 'train/')
+            prep(path_to_data + 'train/', 'train.txt')
             train = path_to_data + 'train/train.txt'
-    if os.path.exists(path_to_data + 'test/'):
-        if os.path.exists(path_to_data + 'test/test.txt'):
+    if os.path.exists(path_to_data + 'test/') == True:
+        if os.path.exists(path_to_data + 'test/test.txt') == True:
             test = path_to_data + 'test/test.txt'
         else:
-            prep('test.txt', path_to_data + 'test/')
+            prep(path_to_data + 'test/', 'test.txt')
             test = path_to_data + 'test/test.txt'
-    if os.path.exists(path_to_data + 'valid/'):
-        if os.path.exists(path_to_data + 'valid/valid.txt'):
+    else:
+        test = '# ' + path_to_data + 'test/test.txt'        
+    if os.path.exists(path_to_data + 'valid/') == True:
+        if os.path.exists(path_to_data + 'valid/valid.txt') == True:
             valid = path_to_data + 'valid/valid.txt'
         else:
-            prep('valid.txt', path_to_data + 'valid/')
+            prep(path_to_data + 'valid/', 'valid.txt')
             valid = path_to_data + 'valid/valid.txt'
-    if os.path.exists(path_to_data + 'backup/'):
+    else:
+        valid = '# ' + path_to_data + 'valid/valid.txt'
+    if os.path.exists(path_to_data + 'backup/') == True:
         backup = path_to_data + 'backup/'
     else:
         os.mkdir('backup')

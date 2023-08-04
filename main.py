@@ -19,6 +19,39 @@ def end_program():
         clear()
         exit()
 
+def prepare_all_training():
+        clear()
+        data_processing_banner()
+        print('Preparing a dataset for training')
+        question = input('Are you importing data from Roboflow? (y/n)')
+        if question == 'y':
+            ul = input('Past the dataset url here: ')
+            path = input('Enter the path to the output folder: ')
+            path = check_full_path(path)
+            prepare_training(ul, path)
+            end_program()
+        if question == 'n':
+            print('Make sure the images are annotated and within the same folder')
+            path = input('Enter the path to the data: (remember to end with a /)')
+            path = check_full_path(path)
+            temp = input('Use temp folder? (y/n)')
+            if temp == 'y':
+                temp = 'temp/'
+                temp = check_full_path(temp)
+                save_dir = os.getcwd() + '/' + temp
+                save_dir = check_full_path(save_dir)
+                import_names(path, True, temp)
+                prepare_cfg('code/data/yolov4.cfg', temp + 'obj.names', temp, 100, 'yolov4_10.cfg')
+                make_obj_data(path, True, save_dir)
+                end_program()
+            else:
+                out = input('Enter the path to the output folder: ')
+                out = check_full_path(out)
+                import_names(path, True, out)
+                prepare_cfg('code/data/yolov4.cfg', out + 'obj.names', out, 100, 'yolov4_10.cfg')
+                make_obj_data(path, True, out)
+                end_program()
+
 def main():
     display_banner()
     selection_program()
@@ -35,70 +68,80 @@ def main():
         clear()
         data_processing_banner()
         print('Converting multimedia data to JPEG images')
-        print('Enter the path to the data: ')
-        print('Remember to use quotation marks and end the path with a /')
-        path = input()
-        print('Use temp folder? (y/n)')
-        temp = input()
+        path = input('Enter the path to the data: (remember to end with a /)')
+        path = check_full_path(path)
+        temp = input('Use temp folder? (y/n)')
         for file in os.listdir(path):
             if temp == 'y':
                 if file.endswith('.mp4'):
                     clear()
                     print('Converting video to image series')
-                    print('Save path: ' + os.getcwd() + '/temp/')
-                    convertVideoToImage(path, 'temp/')
+                    temp = check_full_path('temp/')
+                    convertVideoToImage(path, temp)
                     print('Video converted')
+                    time.sleep(2)
                     clear()
                     cut = input('Do you wish to cut the images into 416x416 pixels? (y/n)')
                     ann = input('Is the data annotated? (y/n)')
                     if cut == 'y':
                         if ann == 'y':
-                            chopUpDataset('temp/', 'temp2/', 416, 416, True)
+                            os.mkdir('temp2/')
+                            chopUpDataset(temp, 'temp2/', 416, 416, True)
+                            os.system('rm -r ' + temp)
+                            os.system('mv temp2/ ' + temp)
                             end_program()
                         elif ann == 'n':
-                            chopUpDataset('temp/', 'temp2/', 416, 416, False)
+                            os.mkdir('temp2/')
+                            chopUpDataset(temp, 'temp2/', 416, 416, False)
+                            os.system('rm -r ' + temp)
+                            os.system('mv temp2/ ' + temp)
                             end_program()
                     elif cut == 'n':
                         end_program()
                 elif file.endswith('.png') or file.endswith('.tiff') or file.endswith('.bmp') or file.endswith('.jpg'):
                     print('Converting images to JPG')
-                    print('Save path: ' + os.getcwd() + '/temp/')
-                    convertVideoToImage(path, 'temp/')
-                    convert(path, True, 'temp/')
+                    temp = check_full_path('temp/')
+                    convert(path, True, temp)
                     print('Images converted')
                     print('Do you wish to cut the images into 416x416 pixels? (y/n)')
                     cut = input()
                     if cut == 'y':
                         ann = input('Is the data annotated? (y/n)')
                         if ann == 'y':
-                            chopUpDataset('temp/', 'temp/', 416, 416, True)
+                            os.mkdir('temp2/')
+                            chopUpDataset(temp, 'temp2/', 416, 416, True)
+                            os.system('rm -r ' + temp)
+                            os.system('mv temp2/ ' + temp)
                             end_program()
                         elif ann == 'n':
-                            chopUpDataset('temp/', 'temp/', 416, 416, False)
+                            os.mkdir('temp2/')
+                            chopUpDataset(temp, 'temp2/', 416, 416, False)
+                            os.system('rm -r ' + temp)
                             end_program()
                     elif cut == 'n':
                         end_program()
                 else:
                     print('File type not supported')
             elif temp == 'n':
-                print('Enter the path to the output folder: ')
-                print('Remember to use quotation marks and end the path with a /')
-                out = input()
+                out = input('Enter the path to the output folder: (end with a /)')
+                out = check_full_path(out)
                 cut = input('Do you wish to cut the images into 416x416 pixels? (y/n)')
                 ann = input('Is the data annotated? (y/n)')
                 if file.endswith('.mp4'):
                     print('Converting video to image series')
                     print('Save path: ' + out)
                     if cut == 'y':
+                        temp = os.mkdir('tmp/')
+                        temp = check_full_path(temp)
                         convertVideoToImage(path, 'temp/')
                         print('Video converted')
                         if ann == 'y':
                             chopUpDataset('temp/', out, 416, 416, True)
-                            os.remove('temp/*')
+                            os.system('rm -r ' + temp)
                             end_program()
                         elif ann == 'n':
-                            chopUpDataset('temp/', out, 416, 416, False)
-                            os.remove('temp/*')
+                            chopUpDataset(temp, out, 416, 416, False)
+                            os.system('rm -r ' + temp)
                             end_program()
                     elif cut == 'n':    
                         convertVideoToImage(path, out)
@@ -123,75 +166,47 @@ def main():
                 else:
                     print('File type not supported')
     elif a == '2':
-        clear()
-        data_processing_banner()
-        print('Preparing a dataset for training')
-        print('Make sure the images are annotated and within the same folder')
-        print('Enter the path to the images: ')
-        print('Remember to use quotation marks and end the path with a /')
-        path = input()
-        print('Use temp folder? (y/n)')
-        temp = input()
-        if temp == 'y':
-            temp = 'temp/'
-            save_dir = os.getcwd() + '/' + temp
-            import_names(path, True, temp)
-            prepare_cfg('code/data/yolov4.cfg', temp + 'obj.names', temp, 100, 'yolov4_10.cfg')
-            make_obj_data(path, True, save_dir)
-        else:
-            print('Enter the path to the output folder: ')
-            print('Remember to use quotation marks and end the path with a /')
-            out = input()
-            import_names(path, True, out)
-            prepare_cfg('code/data/yolov4.cfg', out + 'obj.names', out, 100, 'yolov4_10.cfg')
-            make_obj_data(path, True, out)
+        prepare_all_training()
     elif a == '3':
         clear()
         train_banner()
-        # print('Training a model')
-        print('Do you wish to prepare the folder first? (y/n)')
-        prep = input()
+        prep = input('Do you wish to prepare the folder first? (y/n)')
         if prep == 'y':
-            print('Function not yet implemented')
-        print('Enter the path to the training folder: ')
+            prepare_all_training()
         print('This is the folder with the Train/Test/Valid folders')
         print('and the obj.data, obj.names, and yolov4_10.cfg files')
-        print('Remember to use quotation marks and end the path with a /')
-        path = input()
-        print('Do you want to use the default weights to begin training? (y/n)')
-        w_choice = input()
+        path = input('Enter the path to the data: (remember to end with a /)')
+        path = check_full_path(path)
+        w_choice = input('Do you want to use the default weights to begin training? (y/n)')
         if w_choice == 'y':
             weights = '/home/as-hunt/Etra-Space/cfg/yolov4.conv.137'
         else:
-            print('Enter the path to the weights: ')
-            print('Remember to use quotation marks')
-            weights = input()
-        print('Do you want to use the default arguments? (y/n)')
-        a_choice = input()
+            weights = input('Enter the path to the weights: ')
+        weights = check_full_path(weights)
+        print()
+        a_choice = input('Do you want to use the default arguments? -mjpeg_port 8090 -clear -dont_show (y/n)')
         if a_choice == 'y':
             argus = ' -mjpeg_port 8090 -clear -dont_show'
         else:
-            print('Enter the arguments: ')
-            print('Remember to use quotation marks')
-            argus = input()
-        print('Do you want to use the default number of epochs? (y/n)')
-        e_choice = input()
+            argus = input('Enter the arguments: ')
+        e_choice = input('Do you want to use the default number of epochs? (y/n)')
         if e_choice == 'y':
             epochs = 10000
         else:
-            print('Enter the number of epochs: ')
-            epochs = input()
-        print('Do you want to generate training graph reports? (y/n)')
-        g_choice = input()
+            epochs = input('Enter the number of epochs: ')
+            epochs = int(epochs)
+        g_choice = input('Do you want to generate training graph reports? (y/n)')
         train_fancy(path, epochs, weights, argus)
         if g_choice == 'y':
             make_training_graphs(path + 'output.csv', path)
+        train_complete_banner()    
     elif a == '4':
         clear()
         test_banner()
         print('Testing a model')
         error_banner()
         print(bcolors.ERROR + 'Function not yet implemented')
+        reset_color()
     elif a == '5':
         clear()
         infer_banner()
@@ -201,7 +216,7 @@ def main():
         if copy == 'y':
             print('Enter the path to the data: ')
             print('Remember to use quotation marks and end the path with a /')
-            path = input()
+            path = input('Enter the path to the data: (remember to end with a /)')
             print('Enter the path to the model to be used: ')
             print('Remember to use quotation marks')
             model = input()
