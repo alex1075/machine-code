@@ -53,6 +53,44 @@ def add_bbox(image, bbox, classes):
     img = cv2.rectangle(image, (left_x,top_y), (right_x,bottom_y), colour, 2)
     return img
 
+def change_annotation(i, j, x, y, height, width, path, image, save_name, save_path):
+    # read annotation
+    with open(path + image[:-4] + '.txt', 'r') as f:
+        lines = f.readlines()
+    # loop over lines
+    for line in lines:
+        # get line
+        line = line.split(' ')
+        # get coordinates
+        classes = int(line[0])
+        x1 = decimal.Decimal(line[1]) #centre x
+        y1 = decimal.Decimal(line[2]) #centre y
+        x2 = decimal.Decimal(line[3]) #width
+        y2 = decimal.Decimal(line[4]) #height
+        if int(x1 * width) in range(j, j + x, 1):
+                if int(y1 * height) in range(i, i + y, 1):
+                        # get new coordinates
+                        x1 = decimal.Decimal(((x1 * width) - j ) / x)
+                        y1 = decimal.Decimal(((y1 * height) - i) / y)
+                        x2 = decimal.Decimal(str((x2 * width) / x))
+                        y2 = decimal.Decimal(str((y2 * height) / y))
+                        x1 = float(x1)
+                        y1 = float(y1)
+                        x2 = float(x2)
+                        y2 = float(y2)
+                        min = float(0.05)
+                        max = float(0.95)
+                        # write new coordinates
+                        if x1 <= min or y1 <= min or x1 >=max or y1 >= max  or x2 <= min or y2 <= min or x2 >= max or y2 >= max:
+                            pass
+                        else:
+                            with open(save_path + save_name + '.txt', 'a') as f:
+                                f.write(str(classes) + ' ' + str(round(x1, 6)) + ' ' + str(round(y1, 6)) + ' ' + str(round(x2, 6)) + ' ' + str(round(y2, 6)) + '\n')
+                else:
+                    pass
+        else:
+            pass
+
 def iou(bb1, bb2):
     """
     Calculate the Intersection over Union (IoU) of two bounding boxes.

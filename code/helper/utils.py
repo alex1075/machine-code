@@ -31,44 +31,6 @@ def remove_non_annotated(pathtofolder):
                pass
             else:
                 os.remove(pathtofolder + image[:-4] + '.jpg')
-
-def change_annotation(i, j, x, y, height, width, path, image, save_name, save_path):
-    # read annotation
-    with open(path + image[:-4] + '.txt', 'r') as f:
-        lines = f.readlines()
-    # loop over lines
-    for line in lines:
-        # get line
-        line = line.split(' ')
-        # get coordinates
-        classes = int(line[0])
-        x1 = decimal.Decimal(line[1]) #centre x
-        y1 = decimal.Decimal(line[2]) #centre y
-        x2 = decimal.Decimal(line[3]) #width
-        y2 = decimal.Decimal(line[4]) #height
-        if int(x1 * width) in range(j, j + x, 1):
-                if int(y1 * height) in range(i, i + y, 1):
-                        # get new coordinates
-                        x1 = decimal.Decimal(((x1 * width) - j ) / x)
-                        y1 = decimal.Decimal(((y1 * height) - i) / y)
-                        x2 = decimal.Decimal(str((x2 * width) / x))
-                        y2 = decimal.Decimal(str((y2 * height) / y))
-                        x1 = float(x1)
-                        y1 = float(y1)
-                        x2 = float(x2)
-                        y2 = float(y2)
-                        min = float(0.05)
-                        max = float(0.95)
-                        # write new coordinates
-                        if x1 <= min or y1 <= min or x1 >=max or y1 >= max  or x2 <= min or y2 <= min or x2 >= max or y2 >= max:
-                            pass
-                        else:
-                            with open(save_path + save_name + '.txt', 'a') as f:
-                                f.write(str(classes) + ' ' + str(round(x1, 6)) + ' ' + str(round(y1, 6)) + ' ' + str(round(x2, 6)) + ' ' + str(round(y2, 6)) + '\n')
-                else:
-                    pass
-        else:
-            pass
     
 def remove_empty_lines(filename):
     if not os.path.isfile(filename):
@@ -125,3 +87,13 @@ def split_img_label(data_train,data_test,folder_train,folder_test):
     for j in tqdm.tqdm(range(len(test_ind))):
         os.system('cp '+data_test[test_ind[j]]+' ./'+ folder_test + '/'  +data_test[test_ind[j]].split('/')[2])
         os.system('cp '+data_test[test_ind[j]].split('.jpg')[0]+'.txt'+'  ./'+ folder_test + '/'  +data_test[test_ind[j]].split('/')[2].split('.jpg')[0]+'.txt')  
+
+def import_images_from_roboflow(url, path):
+    os.system('curl '+url+' > roboflow.zip; unzip roboflow.zip; rm roboflow.zip')
+    os.system('mv train '+path)
+    os.system('mv test '+path)
+    os.system('mv valid '+path)
+    os.system('mv train/_darknet.labels '+path + 'obj.names')
+    os.system('rm README.roboflow.txt')
+    os.system('rm README.dataset.txt')
+    
