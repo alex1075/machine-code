@@ -218,14 +218,15 @@ def main():
         else:
             clear()
             error_banner()
-            print('ERROR: Analyzing data over the network is not yet supported')
+            print(bcolors.ERROR + 'ERROR: Analyzing data over the network is not yet supported')
+            reset_color()
     elif a == '6':
-        print('Exiting')
-        exit()
+        end_program()
     elif a == '7':
         clear()
         warnings_banner()
         print(bcolors.WARNING + 'Beta testing a function, it may not work')
+        reset_color()
         try:
             checkAllImg('temp/', 416, 416)
         except Exception as e:

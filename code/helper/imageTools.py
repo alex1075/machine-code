@@ -79,8 +79,6 @@ def del_top_n_bottom_parts(path):
             if fnmatch.fnmatch(file, '*_0_*') or fnmatch.fnmatch(file, '*_1664_*'):
                 os.remove(path + file)
 
-
-
 def increase_brightness(img, value=30):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     h, s, v = cv2.split(hsv)

@@ -1,5 +1,9 @@
+import os
 import time
 from os import system, name
+
+def reset_color():
+    os.system("tput sgr0")
 
 class bcolors:
     WARNING = '\033[93m'
@@ -110,7 +114,7 @@ def data_processing_banner():
 
 def banner_goodbye():
     clear()
-    print(r'''
+    print(bcolors.GOOD + r'''
  ____                        __  __                        
 /\  _`\                     /\ \/\ \                       
 \ \ \L\_\    ___     ___    \_\ \ \ \____  __  __     __   
@@ -122,6 +126,7 @@ def banner_goodbye():
                                                \/__/       
 ''') # Larry 3D
     time.sleep(2)
+    reset_color()
 
 def test_banner():
     clear()
@@ -179,6 +184,7 @@ def warnings_banner():
                                                                      
 ''' ) 
     time.sleep(1)
+    os.system("tput sgr0")
 
 def error_banner():
     clear()
@@ -195,3 +201,4 @@ def error_banner():
                                                 
 ''')
     time.sleep(1)
+    os.system("tput sgr0")

@@ -72,6 +72,7 @@ def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
                 pass
             currentframe = 0
             with tqdm.tqdm(total=all_frames) as pbar:
+                pbar.set_description('Converting video: ' + fi)
                 while(True):
                     ret,frame = cam.read()
                     if ret:
