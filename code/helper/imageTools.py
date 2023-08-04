@@ -70,7 +70,7 @@ def crop_images(x, y, path, save_path, annotations=True):
 
 def checkAllImg(path, x, y):
     images = os.listdir(path)
-    for image in tqdm.tqdm(images):
+    for image in tqdm.tqdm(images, desc="Checking images: "):
         if image.endswith(".jpg"):
             imgSizeCheck(image, path, x, y)
 
