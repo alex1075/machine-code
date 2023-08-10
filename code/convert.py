@@ -240,6 +240,7 @@ def get_info(data_path, model_path, model_name):
     cfg = model_path + 'yolov4_10.cfg'
     weights = model_path + 'backup/' + model_name
     data = model_path + 'obj.data'
+    names = model_path + 'obj.names'
     temp_path = data_path + 'temp/'
     if os.path.exists(temp_path) == True:
         pass
@@ -303,9 +304,9 @@ def get_info(data_path, model_path, model_name):
         print('Counted ' + str(len(neu)) + ' neutrophils')
         print('Average confidence: ' + str(round(float(neu['Confidence'].mean()), 2)))
     if len(wbc) != 0:
-        import_and_filter_results(temp_path + 'result.txt', temp_path + 'results.txt')
+        import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
     else:
-        import_and_filter_result_2(temp_path + 'result.txt', temp_path + 'results.txt')   
+        import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)   
     with open(temp_path + 'results.txt') as f:
         for line in f:
             item = line.split()
