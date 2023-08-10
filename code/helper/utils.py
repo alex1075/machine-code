@@ -2,6 +2,8 @@ import cv2
 import os
 import decimal
 import tqdm
+import subprocess
+import inquirer
 from code.helper.config import *
 
 def check_full_path(path):
@@ -144,3 +146,55 @@ def prepare_training(url, path):
     prepare_cfg('code/data/yolov4.cfg', path + 'obj.names', path, 10, 'yolov4_10.cfg')
     make_obj_data(path, False)
     
+def get_file(name, local=False, host='0.0.0.0'):
+    array = []
+    if local==True:
+        name = '*'+name+'*'
+        proc = subprocess.run(["find" , "/", "-name", name], stdout=subprocess.PIPE)
+    elif local==False:
+        choice = input('Search the Microscope machine? (y/n): ')
+        if choice == 'y':
+            ssh = 'rock@100.113.127.78'
+        elif choice == 'n':
+            user = input('Enter username: ')
+            ip = host
+            ssh = user + '@' + ip
+        name = '*'+name+'*'    
+    proc = subprocess.run(["ssh", ssh, "-t", "find" , "/", "-name", name, '-print', ' 2>/dev/null'], stdout=subprocess.PIPE)
+    out = str(proc.stdout.decode('utf-8'))
+    out = out.split('\n')
+    for line in out:
+        li = line.strip('\r')
+        if ': Permission denied' in str(li):
+            pass
+        elif 'Connection to' in str(li):
+            pass
+        else:
+            if len(li) != 0:
+                array.append(li)
+            else:
+                pass    
+    return array
+
+def get_file_over(dest, name, local=False, host=''):
+    if os.path.exists(dest) == False:
+        os.mkdir(dest)
+    dest = check_full_path(dest)
+    array = get_file(name, local, host)
+    question = [inquirer.List('file',
+                           message="Which file do you want to copy?",
+                           choices=array,
+                       ),]
+    answer = inquirer.prompt(question)
+    print(answer['file'])
+    if local == True:
+        os.system('cp ' + answer['file'] + ' ' + dest)
+    elif local == False:
+        choice = input('Copy from Microscope machine? (y/n): ')
+        if choice == 'y':
+            ssh = 'rock@100.113.127.78'
+        elif choice == 'n':
+            user = input('Enter username: ')
+            ip = host
+            ssh = user + '@' + ip
+        os.system('scp ' + ssh + ':' + answer['file'] + ' ' + dest)

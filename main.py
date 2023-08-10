@@ -53,8 +53,8 @@ def prepare_all_training():
                 end_program()
 
 def main():
-    display_banner()
-    selection_program()
+    # display_banner()
+    # selection_program()
     print('Main machine interface, what do you wish to do?')
     print('1. Convert multimedia data to JPEG images')
     print('2. Prepare a dataset for training (image cropping, annotation file modification, etc)')
@@ -214,17 +214,28 @@ def main():
         print('Has the data been copied to the local drive? (y/n)')
         copy = input()
         if copy == 'y':
-            print('Enter the path to the data: ')
-            print('Remember to use quotation marks and end the path with a /')
             path = input('Enter the path to the data: (remember to end with a /)')
-            print('Enter the path to the model to be used: ')
-            print('Remember to use quotation marks')
-            model = input()
-            print('Enter the name of the model to use: ')
-            print('Remember to use quotation marks')
-            name = input()
-            print('Do you want to save generated labels? (y/n)')
-            a = input()
+            model = input('Enter the path to the model to be used: ')
+            name = input('Enter the name of the model to use: ')
+            a = input('Do you want to save generated labels? (y/n)')
+            if a == 'y':
+                save = True
+            else:
+                save = False
+            get_info(path, model, name, save)
+        elif copy == 'n':
+            string = input('Enter the name of the file to search for: ')
+            local = input('Is the file on the local machine? (y/n)')
+            Microscope = input('Is the file on the Microscope machine? (y/n)')
+            if Microscope == 'y':
+                pass
+            elif Microscope == 'n':
+                host = input('Enter the host ip: ')
+            path = input('Enter the path where to copy the data: (remember to end with a /)')    
+            get_file_over(path, string, local, host)
+            model = input('Enter the path to the model to be used: ')
+            name = input('Enter the name of the model to use: ')
+            a = input('Do you want to save generated labels? (y/n)')
             if a == 'y':
                 save = True
             else:
@@ -243,7 +254,7 @@ def main():
         print(bcolors.WARNING + 'Beta testing a function, it may not work')
         reset_color()
         try:
-            checkAllImg('temp/', 416, 416)
+            get_file_over('tempted/', '20230810', False)
         except Exception as e:
             print(bcolors.ERROR + 'Something went wrong')
             a = input('Do you want to see the error? (y/n)')
