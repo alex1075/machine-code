@@ -138,7 +138,7 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
             for line in f:
                 item = line.split()
                 mv = [float(item[2]), float(item[3]), float(item[4]), float(item[5])]
-                mv = [i / 416 for i in mv]
+                mv = pascal_to_yolo(mv)
                 with open(temp_path + item[0] + '.txt', 'a') as g:
                     g.write(str(item[1]) + ' ' + str(mv[0]) + ' ' + str(mv[1]) + ' ' + str(mv[2]) + ' ' + str(mv[3]) + '\n')
         for image in os.listdir(data_path):
