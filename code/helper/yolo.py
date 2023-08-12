@@ -1,10 +1,12 @@
 import os
 import tqdm
 import subprocess
+import shutil
 import warnings
 import pandas as pd
 from code.helper.annotations import *
 from code.helper.reports import *
+from code.helper.utils import *
 
 def train_easy(obj_data="/home/as-hunt/Etra-Space/white-thirds/obj.data", cfg="/home/as-hunt/Etra-Space/white-thirds/yolov4.cfg", model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show"):
     '''Trains a model with the given parameters
@@ -64,24 +66,25 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     pd.DataFrame(df).to_csv(dir + 'output.csv', index=False)
 
 def get_info(data_path, model_path, model_name, sava_annotations=False):
+    data_path = check_full_path(data_path)
+    model_path = check_full_path(model_path)
     cfg = model_path + 'yolov4_10.cfg'
-    weights = model_path + 'backup/' + model_name
+    model_name = check_full_path(model_name)
     data = model_path + 'obj.data'
     names = model_path + 'obj.names'
     temp_path = data_path + 'temp/'
+    # print(data_path, model_path, model_name, cfg, data, names, temp_path)
     if os.path.exists(temp_path) == True:
         pass
     else:
         os.mkdir(temp_path)
-    if os.path.exists(data_path + 'test.txt') == True:
+    try:
         os.remove(data_path + 'test.txt')
-    else:
-        filoo = open(data_path + 'test.txt', 'w')
-        for image in os.listdir(data_path):
-            if image.endswith(".jpg"):
-                filoo.write(data_path + image + "\n")
-        filoo.close()
-    os.system('darknet detector test ' + data + ' ' + cfg + ' ' + weights + ' -dont_show -ext_output < ' + data_path + 'test.txt' + ' > ' + temp_path + 'result.txt 2>&1')
+    except:
+        pass
+    prep(data_path, 'test.txt')
+    os.system('darknet detector test ' + data + ' ' + cfg + ' ' + model_name + ' -dont_show -ext_output < ' + data_path + 'test.txt' + ' > ' + temp_path + 'result.txt 2>&1')
+    # os.system('darknet detector test ' + data + ' ' + cfg + ' ' + model_name + ' -dont_show -ext_output < ' + data_path + 'test.txt' + ' > ' + temp_path + 'result.txt')
     results = open(temp_path + 'result.txt', 'r')
     lines = results.readlines()
     save = []
@@ -138,5 +141,10 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
                 mv = [i / 416 for i in mv]
                 with open(temp_path + item[0] + '.txt', 'a') as g:
                     g.write(str(item[1]) + ' ' + str(mv[0]) + ' ' + str(mv[1]) + ' ' + str(mv[2]) + ' ' + str(mv[3]) + '\n')
+        for image in os.listdir(data_path):
+            if image.endswith(".jpg"):
+                shutil.move(data_path + image, temp_path + image)
+        os.system('cp ' + names + ' ' + temp_path + 'classes.txt')
+        remove_non_annotated(temp_path)        
     os.remove(temp_path + 'results.txt')           
     os.remove(temp_path + 'result.txt')

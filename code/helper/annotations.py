@@ -463,6 +463,10 @@ def check_all_annotations_for_duplicates(annotation_file):
                             start.remove(item)
                         elif item[6] == l[6]:
                             start.remove(item)
+    with open(annotation_file, 'w') as f:
+        for item in start:
+            f.write(item[0] + ' ' + item[1] + ' ' + item[2] + ' ' + item[3] + ' ' + item[4] + ' ' + item[5] + ' ' + item[6] + ' \n')
+
 
 def del_edge_bbox_train(results_folder):
     for file in os.listdir(results_folder):

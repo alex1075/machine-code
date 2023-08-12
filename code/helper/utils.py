@@ -15,6 +15,25 @@ def check_full_path(path):
         else:
             raise Exception('Path not found')
 
+def save_new_host():
+    host = input('Enter hostname or IP: ')
+    user = input('Enter username: ')
+    with open('/home/as-hunt/machine-code/code/data/hosts', 'a') as f:
+        f.write(host + ' ' + user + '\n')
+
+def choose_host():
+    hosts = []
+    with open('/home/as-hunt/machine-code/code/data/hosts', 'r') as f:
+        for line in f:
+            hosts.append(line.strip())
+    hosts.append('Add new host')        
+    questions = [inquirer.List('host', message='Choose host', choices=hosts)]
+    answers = inquirer.prompt(questions)
+    if answers['host'] == 'Add new host':
+        save_new_host()
+        return choose_host()
+    else:
+        return answers['host']
 
 #Grabs biggest dimension and scales the photo so that max dim is now 1280
 def resizeTo(image, newhigh=1280, newwid=1280, inter=cv2.INTER_AREA):
@@ -146,20 +165,9 @@ def prepare_training(url, path):
     prepare_cfg('code/data/yolov4.cfg', path + 'obj.names', path, 10, 'yolov4_10.cfg')
     make_obj_data(path, False)
     
-def get_file(name, local=False, host='0.0.0.0'):
+def get_file_remote(name, ssh):
     array = []
-    if local==True:
-        name = '*'+name+'*'
-        proc = subprocess.run(["find" , "/", "-name", name], stdout=subprocess.PIPE)
-    elif local==False:
-        choice = input('Search the Microscope machine? (y/n): ')
-        if choice == 'y':
-            ssh = 'rock@100.113.127.78'
-        elif choice == 'n':
-            user = input('Enter username: ')
-            ip = host
-            ssh = user + '@' + ip
-        name = '*'+name+'*'    
+    name = '*'+name+'*'    
     proc = subprocess.run(["ssh", ssh, "-t", "find" , "/", "-name", name, '-print', ' 2>/dev/null'], stdout=subprocess.PIPE)
     out = str(proc.stdout.decode('utf-8'))
     out = out.split('\n')
@@ -176,11 +184,37 @@ def get_file(name, local=False, host='0.0.0.0'):
                 pass    
     return array
 
-def get_file_over(dest, name, local=False, host=''):
+def get_file_local(name):
+    array = []
+    name = '*'+name+'*'
+    proc = subprocess.run(["find" , "/", "-name", name, '-print', ' 2>/dev/null'], stdout=subprocess.PIPE)
+    out = str(proc.stdout.decode('utf-8'))
+    out = out.split('\n')
+    for line in out:
+        li = line.strip('\r')
+        if ': Permission denied' in str(li):
+            pass
+        elif 'Connection to' in str(li):
+            pass
+        else:
+            if len(li) != 0:
+                array.append(li)
+            else:
+                pass    
+    return array
+
+def get_file_over(dest, name):
+    loc = input('Local or Remote? (l/r): ')
+    if loc == 'l':
+        local = True
+        array = get_file_local(name)
+    elif loc == 'r':
+        local = False
+        host = choose_host()
+        array = get_file_remote(name, host)
     if os.path.exists(dest) == False:
         os.mkdir(dest)
     dest = check_full_path(dest)
-    array = get_file(name, local, host)
     question = [inquirer.List('file',
                            message="Which file do you want to copy?",
                            choices=array,
@@ -190,11 +224,31 @@ def get_file_over(dest, name, local=False, host=''):
     if local == True:
         os.system('cp ' + answer['file'] + ' ' + dest)
     elif local == False:
-        choice = input('Copy from Microscope machine? (y/n): ')
-        if choice == 'y':
-            ssh = 'rock@100.113.127.78'
-        elif choice == 'n':
-            user = input('Enter username: ')
-            ip = host
-            ssh = user + '@' + ip
-        os.system('scp ' + ssh + ':' + answer['file'] + ' ' + dest)
+        os.system('scp ' + host + ':' + answer['file'] + ' ' + dest)
+
+def choose_folder(path):
+    array = []
+    os.listdir(path)
+    for d in os.listdir(path):
+        if os.path.isdir(path + d) == True:
+            array.append(path + d)
+    question = [inquirer.List('folder',
+                            message="Which AI model folder do you want to use?",
+                            choices=array,
+                        ),]
+    answer = inquirer.prompt(question)
+    path = answer['folder'] + '/'
+    return path
+
+def choose_weights(path):
+    array = []
+    path = check_full_path(path + 'backup/')
+    for d in os.listdir(path):
+        if d.endswith('.weights') == True:
+            array.append(path + d)
+    question = [inquirer.List('weights',
+                            message="Which AI model weights do you want to use?",
+                            choices=array,
+                        ),]
+    answer = inquirer.prompt(question)
+    return answer['weights']     

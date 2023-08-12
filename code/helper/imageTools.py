@@ -43,6 +43,7 @@ def crop_images(x, y, path, save_path, annotations=True):
         shutil.copy(path + "classes.txt", save_path)
     else:
         pass
+    path = check_full_path(path)
     images = os.listdir(path)
     for image in tqdm.tqdm(images, desc="Cropping images"):
         if image.endswith(".jpg"):
@@ -64,6 +65,10 @@ def crop_images(x, y, path, save_path, annotations=True):
                  for j in range(0, width, x):
                     crop = img[i:i+y, j:j+x]
                     cv2.imwrite(save_path + image[:-4] + '_' + str(i) + '_' + str(j) + '.jpg', crop)
+            try:
+                os.remove(save_path + image)
+            except:
+                pass
         else:
             # print('Tock')
             pass
@@ -72,7 +77,11 @@ def checkAllImg(path, x, y):
     images = os.listdir(path)
     for image in tqdm.tqdm(images, desc="Checking images: "):
         if image.endswith(".jpg"):
-            imgSizeCheck(image, path, x, y)
+            # print(image)
+            try:
+                imgSizeCheck(image, path, x, y)
+            except:
+                pass
 
 def del_top_n_bottom_parts(path):
         for file in os.listdir(path):

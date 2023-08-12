@@ -1,4 +1,5 @@
 import cv2
+import os
 import re
 import glob, os, datetime
 from PIL import Image
@@ -235,7 +236,6 @@ def import_results(input_file='result.txt', results_file='results.txt'):
                 pass
 
 
-import os
 def get_info(data_path, model_path, model_name):
     cfg = model_path + 'yolov4_10.cfg'
     weights = model_path + 'backup/' + model_name
@@ -314,5 +314,31 @@ def get_info(data_path, model_path, model_name):
             mv = [i / 416 for i in mv]
             with open(temp_path + item[0] + '.txt', 'a') as g:
                  g.write(str(item[1]) + ' ' + str(mv[0]) + ' ' + str(mv[1]) + ' ' + str(mv[2]) + ' ' + str(mv[3]) + '\n')
-    os.remove(temp_path + 'results.txt')           
+    try:
+        os.remove(temp_path + 'results.txt')
+    except:
+        pass
     os.remove(temp_path + 'result.txt')
+
+def check_for_img(path_to_folder):
+    for image in os.listdir(path_to_folder):
+        if image.endswith(".jpg"):
+            pass
+        elif os.path.isdir(path_to_folder + image) == True:
+            pass
+        else:
+            convertVideoToImage(path_to_folder, path_to_folder)
+            os.remove(path_to_folder + image)
+
+def check_if_testable(path_to_folder):
+    chopUpDataset(path_to_folder, path_to_folder, x=416, y=416, annotations=False)
+    for image in os.listdir(path_to_folder):
+        if image.endswith(".jpg"):
+            width, height, _ = cv2.imread(path_to_folder + image).shape
+            if width > 416 or height > 416:
+                os.remove(path_to_folder + image)
+            else:
+                pass
+        else:
+            pass
+
