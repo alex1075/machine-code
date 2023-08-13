@@ -23,7 +23,7 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     upper_range: number of epochs to train for
     model: path to starting weights
     args: additional arguments to pass to darknet
-    
+
     PS: will need to have the cfg file configured to train for only 10 epochs at a time
     PPS: good luck!
     '''
@@ -38,7 +38,7 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
         os.makedirs(backup)
     temp = dir + "temp/"
     if not os.path.exists(temp):
-        os.makedirs(temp)    
+        os.makedirs(temp)
     new_weights = model
     test_dir = dir + "test/"
     test_file = test_dir + "test.txt"
@@ -61,8 +61,8 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
         else:
             subprocess.run(['rm', backup + 'yolov4_' + str(epoch - 10) + '.weights'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.run(['rm', backup + 'chart_yolov4_' + str(epoch) + '.png'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    df = pd.DataFrame(li, columns = ['Epoch', 'F1_score_weighted', 'F1_score_macro', 'Accuracy', 'Precision_score_weighted', 'Precision_score_macro', 'Recall_score_weighted', 'Recall_score_macro', 'Fbeta05_score_weighted', 'Fbeta05_score_macro', 'Fbeta2_score_weighted', 'Fbeta2_score_macro'])    
-    print("Training complete. Epochs: " + str(epoch))    
+    df = pd.DataFrame(li, columns = ['Epoch', 'F1_score_weighted', 'F1_score_macro', 'Accuracy', 'Precision_score_weighted', 'Precision_score_macro', 'Recall_score_weighted', 'Recall_score_macro', 'Fbeta05_score_weighted', 'Fbeta05_score_macro', 'Fbeta2_score_weighted', 'Fbeta2_score_macro'])
+    print("Training complete. Epochs: " + str(epoch))
     pd.DataFrame(df).to_csv(dir + 'output.csv', index=False)
 
 def get_info(data_path, model_path, model_name, sava_annotations=False):
@@ -94,8 +94,8 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
             lin = re.split(':|%|t|w|h', line)
             save.append([lin[0], int(lin[1])])
         else:
-            pass    
-    df = pd.DataFrame(save, columns=['Cell type', 'Confidence'])    
+            pass
+    df = pd.DataFrame(save, columns=['Cell type', 'Confidence'])
     os.remove(data_path + 'test.txt')
     df.to_csv(data_path + 'results.csv', index=False)
     ery = df.loc[df['Cell type'] == 'ERY']
@@ -133,7 +133,7 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
             f.write('Average confidence: ' + str(round(float(neu['Confidence'].mean()), 2)) + '\n')
     if sava_annotations == True:
         import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
-        check_all_annotations_for_duplicates(temp_path + 'results.txt')   
+        check_all_annotations_for_duplicates(temp_path + 'results.txt')
         with open(temp_path + 'results.txt') as f:
             for line in f:
                 item = line.split()
@@ -145,6 +145,6 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
             if image.endswith(".jpg"):
                 shutil.move(data_path + image, temp_path + image)
         os.system('cp ' + names + ' ' + temp_path + 'classes.txt')
-        remove_non_annotated(temp_path)        
-    os.remove(temp_path + 'results.txt')           
+        remove_non_annotated(temp_path)
+    	os.remove(temp_path + 'results.txt')
     os.remove(temp_path + 'result.txt')
