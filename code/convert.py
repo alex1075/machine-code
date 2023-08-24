@@ -85,7 +85,10 @@ def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
                         break
             pbar.close()        
             cam.release()
-            cv2.destroyAllWindows()
+            try:
+                cv2.destroyAllWindows()
+            except:
+                pass
 
 def convert2Gray(path_to_folder='Dataset/'):
     jpgs = glob.glob(path_to_folder  + '*.jpg')

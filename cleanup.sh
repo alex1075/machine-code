@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 rm temp/*
 rm .history/* -rf
