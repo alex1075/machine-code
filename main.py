@@ -63,7 +63,7 @@ def main():
     print('4. Test a model')
     print('5. Infer a model on biological data')
     print('6. Exit')
-    print('7. beta test a function')
+    print('7. Copy data over')
     a = input('Enter a a selection: ')
     if a == '1':
         clear()
@@ -251,16 +251,12 @@ def main():
         end_program()
     elif a == '7':
         clear()
-        warnings_banner()
-        print(bcolors.WARNING + 'Beta testing a function, it may not work')
-        reset_color()
-        try:
-            check_if_testable('temp/')
-        except Exception as e:
-            print(bcolors.ERROR + 'Something went wrong')
-            a = input('Do you want to see the error? (y/n)')
-            if a == 'y':
-                print(bcolors.ERROR + str(e))
+        # print('Infering a model on biological data')
+        string = input('Enter the name of the file to search for: ')
+        path = input('Enter the path where to copy the data: (remember to end with a /)')    
+        get_file_over(path, string)
+        clear()
+        end_program()
     else:
         print('Invalid selection')
         time.sleep(2)
