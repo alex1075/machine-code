@@ -529,4 +529,42 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
         file.write("Fbeta2 score none: " + str(fbeta2_score_none) + '\n')
         file.close()
     return F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro
-   
+
+def inference_report(repot_txt, save_name='areas.png'):
+    '''Plots the areas of the bounding boxes in the ground truth and prediction from txt summary files'''
+    pdchaart = []
+    confi = []
+    pd_array = []
+    dfp = []
+    classesp = []
+    listed = open(repot_txt, 'r')
+    for line in listed:
+        li = line.split(' ')
+        name = li[0]
+        classes = li[1]
+        bbox = [int(li[2]), int(li[3]), int(li[4]), int(li[5])]
+        confidence = li[6]
+        pd_array.append([name, bbox, classes, confidence])
+    for item in pd_array:
+        name = item[0]
+        bbox = item[1]
+        classes = item[2]
+        confidence = item[3]
+        pdchaart.append([classes, (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1])))])
+        classesp.append(classes)
+        confi.append(confidence)
+        dfp.append(float(abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))))
+    fig, axs = plt.subplots(1, 0)        
+    fig.set_size_inches(16, 10)
+    
+    df = pd.DataFrame({'Class':classesp, 'Area':dfp}, columns=["Class", "Area"])
+    sns.violinplot(data=df, cut=0, x='Class', y='Area', inner='box', scale='count', split=True, ax=axs[0, 0])
+    axs[0, 0].set_title('Bbox Area Plotting per Class')
+    axs[0, 0].set(xlabel='Class', ylabel='Bbox Areas (pixels)')
+
+    du = pd.DataFrame({'Class':classesp, 'Area':dfp, 'Confidence':confi}, columns=["Class", "Area", "Confidence"])
+    sns.scatterplot(data=du, x="Area", y="Confidence", ax=axs[1, 0], hue='Class', palette=["Red", "Blue", "Green", "Purple", "Yellow", "Cyan"])
+    axs[1, 0].set_title('Confidence by Bbox Areas coloured by Prediction Classes')
+    axs[1, 0].set(xlabel='Bbox Areas (pixels)', ylabel='Confidence')
+    plt.savefig(save_name+'_details.png', bbox_inches='tight')
+    plt.clf()
