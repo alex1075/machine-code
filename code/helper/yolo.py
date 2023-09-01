@@ -146,9 +146,8 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
                 shutil.move(data_path + image, temp_path + image)
         os.system('cp ' + names + ' ' + temp_path + 'classes.txt')
         remove_non_annotated(temp_path)
-        try:
-            inference_report(temp_path + 'results.txt', 'Report')
-        except:
-            pass
+        inference_report('results.txt', 'Report')
+        cat_file('report.txt')
+        os.system('mv Report* ' + temp_path)
         os.remove(temp_path + 'results.txt')
     os.remove(temp_path + 'result.txt')

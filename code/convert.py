@@ -2,6 +2,8 @@ import cv2
 import os
 import re
 import glob, os, datetime
+import time
+import threading
 from PIL import Image
 from imutils import paths
 from code.helper.utils import *
@@ -345,3 +347,12 @@ def check_if_testable(path_to_folder):
         else:
             pass
 
+# def multi_thread_check(path_to_folder):
+#     t1 = threading.Thread(target=check_for_img, args=(path_to_folder,))
+#     t2 = threading.Thread(target=check_if_testable, args=(path_to_folder,))
+#     t1.start()
+#     time.sleep(5)
+#     t2.start()
+#     t1.join()
+#     t2.join()
+    

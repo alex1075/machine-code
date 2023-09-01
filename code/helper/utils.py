@@ -252,3 +252,6 @@ def choose_weights(path):
                         ),]
     answer = inquirer.prompt(question)
     return answer['weights']     
+
+def cat_file(file):
+    os.system('cat ' + file)

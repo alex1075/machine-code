@@ -535,6 +535,7 @@ def inference_report(repot_txt, save_name='areas.png'):
     pdchaart = []
     confi = []
     pd_array = []
+    scatter = []
     dfp = []
     classesp = []
     listed = open(repot_txt, 'r')
@@ -554,17 +555,30 @@ def inference_report(repot_txt, save_name='areas.png'):
         classesp.append(classes)
         confi.append(confidence)
         dfp.append(float(abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))))
-    fig, axs = plt.subplots(1, 0)        
-    fig.set_size_inches(16, 10)
-    
-    df = pd.DataFrame({'Class':classesp, 'Area':dfp}, columns=["Class", "Area"])
-    sns.violinplot(data=df, cut=0, x='Class', y='Area', inner='box', scale='count', split=True, ax=axs[0, 0])
-    axs[0, 0].set_title('Bbox Area Plotting per Class')
-    axs[0, 0].set(xlabel='Class', ylabel='Bbox Areas (pixels)')
+        width = bbox[2] - bbox[0]
+        height = bbox[3] - bbox[1]
+        scatter.append([int(width), int(height), int(classes), float(confidence)])
+    fig, axs = plt.subplots(3)        
+    fig.set_size_inches(10, 16)
 
+    confi = [float(i) for i in confi]
+    df = pd.DataFrame({'Class':classesp, 'Area':dfp}, columns=["Class", "Area"])
+    sns.violinplot(data=df, cut=0, x='Class', y='Area', inner='box', scale='count', split=True, ax=axs[0], order=["0", "1", "2", "3", "4", "5"], palette=["Red", "Blue", "Green", "Purple", "Yellow", "Cyan"])
+    axs[0].set_title('Bbox Area Plotting per Class')
+    axs[0].set(xlabel='Class', ylabel='Bbox Areas (pixels)')
+    classesp = [int(i) for i in classesp]
     du = pd.DataFrame({'Class':classesp, 'Area':dfp, 'Confidence':confi}, columns=["Class", "Area", "Confidence"])
-    sns.scatterplot(data=du, x="Area", y="Confidence", ax=axs[1, 0], hue='Class', palette=["Red", "Blue", "Green", "Purple", "Yellow", "Cyan"])
-    axs[1, 0].set_title('Confidence by Bbox Areas coloured by Prediction Classes')
-    axs[1, 0].set(xlabel='Bbox Areas (pixels)', ylabel='Confidence')
+
+    sns.scatterplot(data=du, x="Area", y="Confidence", ax=axs[1], hue='Class', palette=["Red", "Blue", "Green", "Purple", "Yellow", "Cyan"])
+    axs[1].set_title('Confidence by Bbox Areas coloured by Prediction Classes')
+    axs[1].set(xlabel='Bbox Areas (pixels)', ylabel='Confidence')
+    
+    da = pd.DataFrame(scatter, columns=["Width", "Height", "Class", "Confidence"])
+    sns.scatterplot(data=da, x="Width", y="Height",ax=axs[2], hue='Class',)
+    sns.histplot(data=da, x='Width', y='Height', ax=axs[2], bins=50, pthresh=.1, cmap="mako")
+    sns.kdeplot(data=da, x='Width', y='Height', ax=axs[2], levels=5, color="r", linewidths=1)
+    axs[2].set_title('Scatterplot')
+    axs[2].set(xlabel='Width', ylabel='Height')
+
     plt.savefig(save_name+'_details.png', bbox_inches='tight')
     plt.clf()

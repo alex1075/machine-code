@@ -223,6 +223,7 @@ def main():
                 save = True
             else:
                 save = False
+            clear()
             check_for_img(path)
             check_if_testable(path)    
             get_info(path, model, name, save)
@@ -239,8 +240,8 @@ def main():
             else:
                 save = False
             clear()    
-            check_for_img(path)    
-            check_if_testable(path)
+            check_for_img(path)
+            check_if_testable(path)   
             get_info(path, model, name, save)
         else:
             clear()
