@@ -56,15 +56,18 @@ def main():
     # display_banner()
     # selection_program()
     clear()
-    print('Main machine interface, what do you wish to do?')
-    print('1. Convert multimedia data to JPEG images')
-    print('2. Prepare a dataset for training (image cropping, annotation file modification, etc)')
-    print('3. Train a model')
-    print('4. Test a model')
-    print('5. Infer a model on biological data')
-    print('6. Exit')
-    print('7. Copy data over')
-    a = input('Enter a a selection: ')
+    aaa = """
+    Main machine interface, what do you wish to do? 
+    1. Convert multimedia data to JPEG images
+    2. Prepare a dataset for training (image cropping, annotation file modification, etc)
+    3. Train a model
+    4. Test a model
+    5. Infer a model on biological data
+    6. Copy data over
+    7. Beta test a function
+    8. Exit
+    Enter a a selection: """
+    a = input(aaa)
     if a == '1':
         clear()
         data_processing_banner()
@@ -248,9 +251,9 @@ def main():
             error_banner()
             print(bcolors.ERROR + 'ERROR: Analyzing data over the network is not yet supported')
             reset_color()
-    elif a == '6':
+    elif a == '8':
         end_program()
-    elif a == '7':
+    elif a == '6':
         clear()
         # print('Infering a model on biological data')
         string = input('Enter the name of the file to search for: ')
@@ -258,6 +261,11 @@ def main():
         get_file_over(path, string)
         clear()
         end_program()
+    elif a == '7':
+        clear()
+        print('Testing a function')
+        path = input('Enter the path to the data: (remember to end with a /)')
+        multi_thread_Video_convert(path)
     else:
         print('Invalid selection')
         time.sleep(2)

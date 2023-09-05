@@ -6,6 +6,7 @@ import time
 import threading
 from PIL import Image
 from imutils import paths
+from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from code.helper.utils import *
 from code.helper.imageTools import *
 from code.helper.annotations import *
@@ -80,6 +81,28 @@ def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
                     ret,frame = cam.read()
                     if ret:
                         name = out_folder + nam + '_frame_' + str(currentframe) + '.jpg'
+                        cv2.imwrite(name, frame)
+                        currentframe += 1
+                        pbar.update(1)
+                    else:
+                        break
+            pbar.close()        
+            cam.release()
+            try:
+                cv2.destroyAllWindows()
+            except:
+                pass
+
+def convertAVideoToImage(video, path):
+            cam = cv2.VideoCapture(video)
+            all_frames = int(cam.get(cv2.CAP_PROP_FRAME_COUNT)) 
+            currentframe = 0
+            with tqdm.tqdm(total=all_frames) as pbar:
+                pbar.set_description('Converting video: ' + video)
+                while(True):
+                    ret,frame = cam.read()
+                    if ret:
+                        name = path + video + '_frame_' + str(currentframe) + '.jpg'
                         cv2.imwrite(name, frame)
                         currentframe += 1
                         pbar.update(1)
@@ -240,91 +263,6 @@ def import_results(input_file='result.txt', results_file='results.txt'):
             else:
                 pass
 
-
-def get_info(data_path, model_path, model_name):
-    cfg = model_path + 'yolov4_10.cfg'
-    weights = model_path + 'backup/' + model_name
-    data = model_path + 'obj.data'
-    names = model_path + 'obj.names'
-    temp_path = data_path + 'temp/'
-    if os.path.exists(temp_path) == True:
-        pass
-    else:
-        os.mkdir(temp_path)
-    if os.path.exists(data_path + 'test.txt') == True:
-        os.remove(data_path + 'test.txt')
-    else:
-        filoo = open(data_path + 'test.txt', 'w')
-        for image in os.listdir(data_path):
-            if image.endswith(".jpg"):
-                # print(image)
-                filoo.write(data_path + image + "\n")
-        filoo.close()
-    os.system('darknet detector test ' + data + ' ' + cfg + ' ' + weights + ' -dont_show -ext_output < ' + data_path + 'test.txt' + ' > ' + temp_path + 'result.txt 2>&1')
-    results = open(temp_path + 'result.txt', 'r')
-    lines = results.readlines()
-    # print(lines)
-    save = []
-    cells = ('LYM:', 'MON:', 'NEU:', 'ERY:', 'PLT:', 'ECHY', 'WBC:')
-    for line in lines:
-        if line[0:4] in cells:
-            # print(line)
-            # print(line[0], line[1])
-            lin = re.split(':|%|t|w|h', line)
-            save.append([lin[0], int(lin[1])])
-        else:
-            pass    
-    df = pd.DataFrame(save, columns=['Cell type', 'Confidence'])    
-    # print(df)    
-    os.remove(data_path + 'test.txt')
-    df.to_csv(data_path + 'results.csv', index=False)
-    ery = df.loc[df['Cell type'] == 'ERY']
-    echy = df.loc[df['Cell type'] == 'ECHY']
-    plt = df.loc[df['Cell type'] == 'PLT']
-    wbc = df.loc[df['Cell type'] == 'WBC']
-    lym = df.loc[df['Cell type'] == 'LYM']
-    mon = df.loc[df['Cell type'] == 'MON']
-    neu = df.loc[df['Cell type'] == 'NEU']
-    print('Counted ' + str(len(df)) + ' cells')
-    print('Overall average confidence: ' + str(round(float(df['Confidence'].mean()), 2)))
-    if len(ery) != 0:
-        print('Counted ' + str(len(ery)) + ' erythrocytes')
-        print('Average confidence: ' + str(round(float(ery['Confidence'].mean()), 2)))
-    if len(echy) != 0:
-        print('Counted ' + str(len(echy)) + ' echinocytes')
-        print('Average confidence: ' + str(round(float(echy['Confidence'].mean()), 2)))
-    if len(plt) != 0:
-        print('Counted ' + str(len(plt)) + ' platelets')
-        print('Average confidence: ' + str(round(float(plt['Confidence'].mean()), 2)))
-    if len(wbc) != 0:
-        print('Counted ' + str(len(wbc)) + ' white blood cells')
-        print('Average confidence: ' + str(round(float(wbc['Confidence'].mean()), 2)))
-    if len(lym) != 0:
-        print('Counted ' + str(len(lym)) + ' lymphocytes')
-        print('Average confidence: ' + str(round(float(lym['Confidence'].mean()), 2)))
-    if len(mon) != 0:
-        print('Counted ' + str(len(mon)) + ' monocytes')
-        print('Average confidence: ' + str(round(float(mon['Confidence'].mean()), 2)))
-    if len(neu) != 0:
-        print('Counted ' + str(len(neu)) + ' neutrophils')
-        print('Average confidence: ' + str(round(float(neu['Confidence'].mean()), 2)))
-    if len(wbc) != 0:
-        import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
-    else:
-        import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)   
-    with open(temp_path + 'results.txt') as f:
-        for line in f:
-            item = line.split()
-            mv = [float(item[2]), float(item[3]), float(item[4]), float(item[5])]
-            mv = [i / 416 for i in mv]
-            with open(temp_path + item[0] + '.txt', 'a') as g:
-                 g.write(str(item[1]) + ' ' + str(mv[0]) + ' ' + str(mv[1]) + ' ' + str(mv[2]) + ' ' + str(mv[3]) + '\n')
-    try:
-        os.remove(temp_path + 'results.txt')
-    except:
-        pass
-    os.remove(temp_path + 'result.txt')
-
 def check_for_img(path_to_folder):
     for image in os.listdir(path_to_folder):
         if image.endswith(".jpg"):
@@ -347,12 +285,65 @@ def check_if_testable(path_to_folder):
         else:
             pass
 
-# def multi_thread_check(path_to_folder):
-#     t1 = threading.Thread(target=check_for_img, args=(path_to_folder,))
-#     t2 = threading.Thread(target=check_if_testable, args=(path_to_folder,))
-#     t1.start()
-#     time.sleep(5)
-#     t2.start()
-#     t1.join()
-#     t2.join()
-    
+def multi_thread_crop(x, y, path, save_path, annotations=False):
+    path = check_full_path(path)
+    save_path = check_full_path(save_path)
+    list_img=[img for img in os.listdir(path) if img.endswith('.jpg')==True]
+    list_1=[]
+    list_2=[]
+    if annotations == True:
+        shutil.copy(path + "classes.txt", save_path)
+    else:
+        pass
+    path = check_full_path(path)
+    for image in list_img:
+        image = path + image
+        if image.endswith("1.jpg") or image.endswith("3.jpg") or image.endswith("5.jpg") or image.endswith("7.jpg") or image.endswith("9.jpg"):
+            list_1.append(image)
+        elif image.endswith("2.jpg") or image.endswith("4.jpg") or image.endswith("6.jpg") or image.endswith("8.jpg") or image.endswith("0.jpg"):
+            list_2.append(image)
+        else:
+            pass
+    # print(list_1)
+    thread_1 = threading.Thread(target=crop_image_list, args=(x, y, list_1, save_path, annotations))
+    thread_2 = threading.Thread(target=crop_image_list, args=(x, y, list_2, save_path, annotations))
+    thread_1.start()
+    thread_2.start()
+    thread_1.join()
+    thread_2.join()
+
+
+def multi_thread_Video_convert(path):
+    path = check_full_path(path)
+    proc = os.cpu_count()
+    for video in os.listdir(path):
+        if video.endswith(".mp4"):
+            print('Processing video: ' + video)
+            duration, fps = video_len(path + video)
+            print('Duration: ' + str(duration) + ' FPS: ' + str(fps))
+            chunk = int(fps / proc)
+            print('Chunk: ' + str(chunk))
+            for i in range(proc):
+                print('Processing chunk: ' + str(i))
+                out = path + video[:-4] + '_' + str(i) + ".mp4"
+                ffmpeg_extract_subclip(path + video, i*chunk, (i+1)*chunk, out)
+                dur, fp = video_len(out)
+                print('Duration: ' + str(dur) + ' FPS: ' + str(fp))
+            os.remove(path + video)
+        else:
+            pass
+    videos = glob.glob(path + '*.mp4')
+    count = len(videos)
+    print(count)
+    thread_list = []
+    for i in range(proc):
+        matches = [x for x in videos if x.endswith(str(i) + '.mp4')]
+        print(matches)
+        thread = threading.Thread(target=convertAVideoToImage, args=(matches, path))
+        thread_list.append(thread)
+        thread_list[i].start()
+        print('Started thread ' + str(i))
+
+    for i in thread_list:
+        thread.join()
+    print('All threads finished')        

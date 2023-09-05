@@ -255,3 +255,15 @@ def choose_weights(path):
 
 def cat_file(file):
     os.system('cat ' + file)
+
+def parent_dir(path):
+    return os.path.abspath(os.path.join(path, os.pardir)) + '/'
+
+def video_len(filename):
+    import cv2
+    video = cv2.VideoCapture(filename)
+
+    duration = video.get(cv2.CAP_PROP_POS_MSEC)
+    frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
+
+    return duration, frame_count    

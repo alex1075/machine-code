@@ -73,6 +73,32 @@ def crop_images(x, y, path, save_path, annotations=True):
             # print('Tock')
             pass
 
+def crop_image_list(x, y, lists, save_path, annotations=True):
+    images = lists
+    for image in tqdm.tqdm(images, desc="Cropping images"):
+            path = parent_dir(image)
+            img = cv2.imread(image)
+            height, width, channels = img.shape
+            for i in range(0, height, y):
+                for j in range(0, width, x):
+                    crop_img = img[i:i+y, j:j+x]
+                    new_name = image[:-4] + '_' + str(i) + '_' + str(j)
+                    cv2.imwrite(save_path + new_name + ".jpg", crop_img)
+                    if annotations == True:
+                        change_annotation(i, j, x, y, height, width, path, image, new_name, save_path)
+                    else:
+                        pass
+                img = cv2.imread(image)
+            height, width, channels = img.shape
+            for i in range(0, height, y):
+                 for j in range(0, width, x):
+                    crop = img[i:i+y, j:j+x]
+                    cv2.imwrite(save_path + image[:-4] + '_' + str(i) + '_' + str(j) + '.jpg', crop)
+            try:
+                os.remove(save_path + image)
+            except:
+                pass
+
 def checkAllImg(path, x, y):
     images = os.listdir(path)
     for image in tqdm.tqdm(images, desc="Checking images: "):
