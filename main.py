@@ -8,6 +8,7 @@ from code.helper.utils import *
 from code.helper.yolo import *
 from code.helper.fancy import *
 from code.helper.config import *
+from code.helper.threading import *
 
 def end_program():
     a = input('Do you have something else to do? (y/n)')
@@ -263,9 +264,10 @@ def main():
         end_program()
     elif a == '7':
         clear()
-        print('Testing a function')
-        path = input('Enter the path to the data: (remember to end with a /)')
-        multi_thread_Video_convert(path)
+        # print('Testing a function')
+        # path = input('Enter the path to the data: (remember to end with a /)')
+        path = 'temp/'
+        multi_file_Video_convert(path)
     else:
         print('Invalid selection')
         time.sleep(2)

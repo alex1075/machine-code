@@ -1,12 +1,8 @@
 import cv2
-import os
 import re
-import glob, os, datetime
-import time
-import threading
+import glob, os, time
 from PIL import Image
 from imutils import paths
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from code.helper.utils import *
 from code.helper.imageTools import *
 from code.helper.annotations import *
@@ -64,6 +60,7 @@ def resizeAllJpg(path_to_folder='Data/', newhight=1080, newwid=1080):
 
 #Cycles through videos in path_to_folder and outputs jpg to out_folder
 def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
+    tic = time.perf_counter()
     for fi in os.listdir(path_to_folder):
         nam, ext = os.path.splitext(fi)
         if fi.endswith('.mp4'):
@@ -92,6 +89,10 @@ def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
                 cv2.destroyAllWindows()
             except:
                 pass
+        else:
+            pass
+    toc = time.perf_counter()
+    print(f"Finished in {toc - tic:0.4f} seconds")
 
 def convertAVideoToImage(video, path):
             cam = cv2.VideoCapture(video)
@@ -102,7 +103,8 @@ def convertAVideoToImage(video, path):
                 while(True):
                     ret,frame = cam.read()
                     if ret:
-                        name = path + video + '_frame_' + str(currentframe) + '.jpg'
+                        name = video[:-4] + '_frame_' + str(currentframe) + '.jpg'
+                        # print(name)
                         cv2.imwrite(name, frame)
                         currentframe += 1
                         pbar.update(1)
@@ -285,65 +287,3 @@ def check_if_testable(path_to_folder):
         else:
             pass
 
-def multi_thread_crop(x, y, path, save_path, annotations=False):
-    path = check_full_path(path)
-    save_path = check_full_path(save_path)
-    list_img=[img for img in os.listdir(path) if img.endswith('.jpg')==True]
-    list_1=[]
-    list_2=[]
-    if annotations == True:
-        shutil.copy(path + "classes.txt", save_path)
-    else:
-        pass
-    path = check_full_path(path)
-    for image in list_img:
-        image = path + image
-        if image.endswith("1.jpg") or image.endswith("3.jpg") or image.endswith("5.jpg") or image.endswith("7.jpg") or image.endswith("9.jpg"):
-            list_1.append(image)
-        elif image.endswith("2.jpg") or image.endswith("4.jpg") or image.endswith("6.jpg") or image.endswith("8.jpg") or image.endswith("0.jpg"):
-            list_2.append(image)
-        else:
-            pass
-    # print(list_1)
-    thread_1 = threading.Thread(target=crop_image_list, args=(x, y, list_1, save_path, annotations))
-    thread_2 = threading.Thread(target=crop_image_list, args=(x, y, list_2, save_path, annotations))
-    thread_1.start()
-    thread_2.start()
-    thread_1.join()
-    thread_2.join()
-
-
-def multi_thread_Video_convert(path):
-    path = check_full_path(path)
-    proc = os.cpu_count()
-    for video in os.listdir(path):
-        if video.endswith(".mp4"):
-            print('Processing video: ' + video)
-            duration, fps = video_len(path + video)
-            print('Duration: ' + str(duration) + ' FPS: ' + str(fps))
-            chunk = int(fps / proc)
-            print('Chunk: ' + str(chunk))
-            for i in range(proc):
-                print('Processing chunk: ' + str(i))
-                out = path + video[:-4] + '_' + str(i) + ".mp4"
-                ffmpeg_extract_subclip(path + video, i*chunk, (i+1)*chunk, out)
-                dur, fp = video_len(out)
-                print('Duration: ' + str(dur) + ' FPS: ' + str(fp))
-            os.remove(path + video)
-        else:
-            pass
-    videos = glob.glob(path + '*.mp4')
-    count = len(videos)
-    print(count)
-    thread_list = []
-    for i in range(proc):
-        matches = [x for x in videos if x.endswith(str(i) + '.mp4')]
-        print(matches)
-        thread = threading.Thread(target=convertAVideoToImage, args=(matches, path))
-        thread_list.append(thread)
-        thread_list[i].start()
-        print('Started thread ' + str(i))
-
-    for i in thread_list:
-        thread.join()
-    print('All threads finished')        
