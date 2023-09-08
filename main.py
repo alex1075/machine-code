@@ -136,17 +136,14 @@ def main():
                     print('Converting video to image series')
                     print('Save path: ' + out)
                     if cut == 'y':
-                        temp = os.mkdir('tmp/')
-                        temp = check_full_path(temp)
+                        temp = check_full_path(out)
                         convertVideoToImage(path, 'temp/')
                         print('Video converted')
                         if ann == 'y':
                             chopUpDataset('temp/', out, 416, 416, True)
-                            os.system('rm -r ' + temp)
                             end_program()
                         elif ann == 'n':
                             chopUpDataset(temp, out, 416, 416, False)
-                            os.system('rm -r ' + temp)
                             end_program()
                     elif cut == 'n':    
                         convertVideoToImage(path, out)

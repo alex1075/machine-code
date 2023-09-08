@@ -14,6 +14,7 @@ from code.helper.watch import *
 from code.helper.imageTools import *
 
 def multi_thread_crop(x, y, path, save_path, annotations=False):
+    tic = time.perf_counter()
     path = check_full_path(path)
     save_path = check_full_path(save_path)
     list_img=[img for img in os.listdir(path) if img.endswith('.jpg')==True]
@@ -34,6 +35,8 @@ def multi_thread_crop(x, y, path, save_path, annotations=False):
 
     for i in thread_list:
         thread.join()
+    toc = time.perf_counter()
+    print(f"Finished in {toc - tic:0.4f} seconds")
 
 
 
@@ -55,8 +58,7 @@ def multi_file_Video_convert(path):
                 thread_list.append(thread)
                 thread_list[-1].start()
             except:
-                for i in thread_list:
-                    thread.join()
+                pass
             cpu += 1
             a += 1
         for i in thread_list:
