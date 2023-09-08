@@ -170,7 +170,10 @@ def iterateBlurMove(path_to_folder='', outfolder='sorted/', start=0, end=100, st
         detectAndMoveBlurr(path_to_folder, threshold=i, currentstep=currentstep, outfolder=outfolder)
 
 def chopUpDataset(path_to_folder='test_dataset/', outfolder='output/', x=416, y=416, annotations=True):
+    tic = time.perf_counter()
     crop_images(x, y, path_to_folder, outfolder, annotations)
+    toc = time.perf_counter()
+    print(f"Finished in {toc - tic:0.4f} seconds")
     if annotations == True:
         remove_non_annotated(outfolder)
     else:
