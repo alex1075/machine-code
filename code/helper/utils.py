@@ -25,7 +25,7 @@ def save_new_host():
 
 def choose_host():
     hosts = []
-    with open('/home/as-hunt/machine-code/code/data/hosts', 'r') as f:
+    with open(check_full_path(host_file), 'r') as f:
         for line in f:
             hosts.append(line.strip())
     hosts.append('Add new host')        
