@@ -6,6 +6,8 @@ import subprocess
 import inquirer
 from code.helper.config import *
 
+host_file = '../data/hosts'
+
 def check_full_path(path):
     if os.path.isabs(path) == True:
         return path
@@ -18,7 +20,7 @@ def check_full_path(path):
 def save_new_host():
     host = input('Enter hostname or IP: ')
     user = input('Enter username: ')
-    with open('/home/as-hunt/machine-code/code/data/hosts', 'a') as f:
+    with open(check_full_path(host_file), 'a') as f:
         f.write(host + ' ' + user + '\n')
 
 def choose_host():
