@@ -6,7 +6,7 @@ import subprocess
 import inquirer
 from code.helper.config import *
 
-host_file = '../data/hosts'
+host_file = os.getcwd() + 'code/data/hosts'
 
 def check_full_path(path):
     if os.path.isabs(path) == True:
