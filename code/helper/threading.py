@@ -10,7 +10,6 @@ from code.helper.annotations import *
 from code.helper.reports import *
 from code.helper.config import *
 from code.helper.yolo import *
-from code.helper.watch import *
 from code.helper.imageTools import *
 
 def multi_thread_crop(x, y, path, save_path, annotations=False):
