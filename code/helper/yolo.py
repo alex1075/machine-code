@@ -31,7 +31,12 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     epoch = 0
     warnings.filterwarnings("ignore")
     obj_data = dir + "obj.data"
-    cfg_10 = dir + "yolov4_10.cfg"
+    # cfg_10 = dir + "yolov4_10.cfg"
+    for file in os.listdir(dir):
+        if file.endswith(".cfg"):
+            cfg_10 = dir + file
+            version = file.split('.')[0]
+            print("Using cfg file: " + cfg_10)
     backup = dir + "backup/"
     names = dir + "obj.names"
     if not os.path.exists(backup):
@@ -49,8 +54,8 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     for i in tqdm(range(0, upper_range, 10), desc="Training", unit="epochs"):
         os.system("darknet detector train " + obj_data + ' ' + cfg_10 + ' ' + new_weights + ' ' + args + '> /dev/null 2>&1')
         epoch = i + 10
-        subprocess.run(['mv', backup + 'yolov4_10_final.weights', backup + 'yolov4_' + str(epoch) + '.weights'])
-        new_weights = backup + "yolov4_" + str(epoch) + ".weights"
+        subprocess.run(['mv', backup + version + '_final.weights', backup + version + '_' + str(epoch) + '.weights'])
+        new_weights = backup + version + str(epoch) + ".weights"
         os.system("darknet detector test " + obj_data + " " + cfg_10 + " " + new_weights + " -dont_show -ext_output < " + test_file + " > " + temp_file + " 2>&1")
         import_results_neo(temp_file, temp + 'results_' + str(epoch) + '.txt', names)
         F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(epoch) + '.txt', 'export_' + str(epoch), False, ['ECHY', 'ERY', 'LYM', 'MON', 'NEU', 'PLT'], False)
@@ -59,8 +64,8 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
         if (epoch-10) % 50 == 0:
             pass
         else:
-            subprocess.run(['rm', backup + 'yolov4_' + str(epoch - 10) + '.weights'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(['rm', backup + 'chart_yolov4_' + str(epoch) + '.png'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(['rm', backup + version + str(epoch - 10) + '.weights'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(['rm', backup + 'chart_' + version + str(epoch) + '.png'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     df = pd.DataFrame(li, columns = ['Epoch', 'F1_score_weighted', 'F1_score_macro', 'Accuracy', 'Precision_score_weighted', 'Precision_score_macro', 'Recall_score_weighted', 'Recall_score_macro', 'Fbeta05_score_weighted', 'Fbeta05_score_macro', 'Fbeta2_score_weighted', 'Fbeta2_score_macro'])
     print("Training complete. Epochs: " + str(epoch))
     pd.DataFrame(df).to_csv(dir + 'output.csv', index=False)

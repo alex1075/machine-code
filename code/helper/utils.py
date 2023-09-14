@@ -164,7 +164,7 @@ def prepare_training(url, path):
     if os.path.exists(path+'valid/') == True:
         remove_non_annotated(path + 'valid/')
         prep(path + 'valid/', 'valid.txt')
-    prepare_cfg('code/data/yolov4.cfg', path + 'obj.names', path, 10, 'yolov4_10.cfg')
+    select_yolo_version(path + 'obj.names', path, 10)
     make_obj_data(path, False)
     
 def get_file_remote(name, ssh):
@@ -269,3 +269,16 @@ def video_len(filename):
     frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
 
     return duration, frame_count    
+
+def select_yolo_version(obj_names, path, upper_range):
+    question = [inquirer.List('version',
+                            message="Which YOLO version do you want to use?",
+                            choices=['yolov4', 'yolov5', 'yolov6', 'yolov7', 'yolov8'],
+                        ),]
+    answer = inquirer.prompt(question)
+    if answer == 'yolov4':
+        prepare_cfg_v4(obj_names, path, upper_range)
+    elif answer == 'yolov5':
+        prepare_cfg_v5(obj_names, path, upper_range)
+    else:
+        raise Exception('Not yet implemented')

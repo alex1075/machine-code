@@ -74,12 +74,11 @@ def crop_images(x, y, path, save_path, annotations=True):
             # print('Tock')
             pass
 
-def crop_image_list(x, y, lists, save_path, annotations=True):
+def crop_image_list(x, y, lists, path, save_path, annotations=True):
     tic = time.perf_counter()
     images = lists
     for image in tqdm.tqdm(images, desc="Cropping images"):
-            path = parent_dir(image)
-            img = cv2.imread(image)
+            img = cv2.imread(path + image)
             height, width, channels = img.shape
             for i in range(0, height, y):
                 for j in range(0, width, x):
@@ -90,7 +89,7 @@ def crop_image_list(x, y, lists, save_path, annotations=True):
                         change_annotation(i, j, x, y, height, width, path, image, new_name, save_path)
                     else:
                         pass
-                img = cv2.imread(image)
+                img = cv2.imread(path + image)
             height, width, channels = img.shape
             for i in range(0, height, y):
                  for j in range(0, width, x):

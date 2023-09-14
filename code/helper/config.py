@@ -76,8 +76,8 @@ def import_names(path_to_data, save_elsewhere=False, save_path='temp/'):
         else:
             pass           
 
-def prepare_cfg(template_cfg='code/data/yolov4.cfg', obj_names='temp/obj.names', output_folder='temp/', epochs_to_run_for=100, output_name='yolov4_10.cfg'):
-    '''Prepares the cfg file for training
+def prepare_cfg_v4(obj_names='temp/obj.names', output_folder='temp/', epochs_to_run_for=100, output_name='yolov4_10.cfg'):
+    '''Prepares the Yolo v4 cfg file for training
     
     args:
     template_cfg: the path to the template cfg file
@@ -85,6 +85,7 @@ def prepare_cfg(template_cfg='code/data/yolov4.cfg', obj_names='temp/obj.names',
     output_folder: the path to the output folder
     epochs_to_run_for: the number of epochs to run for
     '''
+    template_cfg='code/data/yolov4.cfg'
     with open(obj_names) as f:
         names = f.readlines()
         count = len(names) 
@@ -97,6 +98,29 @@ def prepare_cfg(template_cfg='code/data/yolov4.cfg', obj_names='temp/obj.names',
     change_line(output_folder + output_name, 1057, 'classes=' + str(count) + '\n')
     change_line(output_folder + output_name, 1138, 'filters=' + str(filters) + '\n')
     change_line(output_folder + output_name, 1145, 'classes=' + str(count) + '\n')
+
+def prepare_cfg_v5(obj_names='temp/obj.names', output_folder='temp/', epochs_to_run_for=100, output_name='yolov5_10.cfg'):
+    '''Prepares the Yolo v5 cfg file for training
+    
+    args:
+    template_cfg: the path to the template cfg file
+    obj_names: the path to the obj.names file
+    output_folder: the path to the output folder
+    epochs_to_run_for: the number of epochs to run for
+    '''
+    template_cfg='code/data/yolov5.cfg'
+    with open(obj_names) as f:
+        names = f.readlines()
+        count = len(names) 
+    filters = ((count + 5) * 3)    
+    change_line(template_cfg, 21, 'max_batches=' + str(epochs_to_run_for) + '\n', True, output_folder + output_name)
+    change_line(output_folder + output_name, 23, 'steps=' + str(round(epochs_to_run_for * 0.8)) + ',' + str(round(epochs_to_run_for * 0.9)) + '\n')
+    change_line(output_folder + output_name, 928, 'filters=' + str(filters) + '\n')
+    change_line(output_folder + output_name, 934, 'classes=' + str(count) + '\n')
+    change_line(output_folder + output_name, 1058, 'filters=' + str(filters) + '\n')
+    change_line(output_folder + output_name, 1064, 'classes=' + str(count) + '\n')
+    change_line(output_folder + output_name, 1186, 'filters=' + str(filters) + '\n')
+    change_line(output_folder + output_name, 1191, 'classes=' + str(count) + '\n')    
 
 def make_obj_data(path_to_data, save_elsewhere=False, save_path='temp/'):
     '''Creates the obj.data file for training

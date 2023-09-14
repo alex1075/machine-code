@@ -30,7 +30,6 @@ def prepare_all_training():
             path = input('Enter the path to the output folder: ')
             path = check_full_path(path)
             prepare_training(ul, path)
-            end_program()
         if question == 'n':
             print('Make sure the images are annotated and within the same folder')
             path = input('Enter the path to the data: (remember to end with a /)')
@@ -42,16 +41,14 @@ def prepare_all_training():
                 save_dir = os.getcwd() + '/' + temp
                 save_dir = check_full_path(save_dir)
                 import_names(path, True, temp)
-                prepare_cfg('code/data/yolov4.cfg', temp + 'obj.names', temp, 100, 'yolov4_10.cfg')
+                select_yolo_version(temp + 'obj.names', temp, 100)
                 make_obj_data(path, True, save_dir)
-                end_program()
             else:
                 out = input('Enter the path to the output folder: ')
                 out = check_full_path(out)
                 import_names(path, True, out)
-                prepare_cfg('code/data/yolov4.cfg', out + 'obj.names', out, 100, 'yolov4_10.cfg')
+                select_yolo_version(out + 'obj.names', out, 100)
                 make_obj_data(path, True, out)
-                end_program()
 
 def main():
     # display_banner()
@@ -265,6 +262,7 @@ def main():
         # path = input('Enter the path to the data: (remember to end with a /)')
         path = 'temp/'
         multi_file_Video_convert(path)
+        # multi_thread_crop(416, 416, path, 'temp2/', False)
     else:
         print('Invalid selection')
         time.sleep(2)

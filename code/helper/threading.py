@@ -21,15 +21,19 @@ def multi_thread_crop(x, y, path, save_path, annotations=False):
     proc = os.cpu_count()
     if annotations == True:
         shutil.copy(path + "classes.txt", save_path)
-    else:
-        pass
     path = check_full_path(path)
-    lengt = len(list_img)
+    # print(len(list_img))
+    lengt = int(len(list_img) / proc)
+    # print(lengt)
+    chunks = [list_img[x:x+lengt] for x in range(0, len(list_img), lengt)]
     for i in range(proc):
-        listy = list_img[int(i * lengt / proc):int((i + 1) * lengt / proc)]
-        thread = threading.Thread(target=crop_image_list, args=(x, y, listy, save_path, annotations))
+        print(len(chunks[i]))
+    for i in range(proc):
+        thread = threading.Thread(target=crop_image_list, args=(x, y, chunks[i], path, save_path, annotations))
         thread_list.append(thread)
         thread_list[i].start()
+        # print(chunks[i])
+        # print('tic')
         print('Started thread ' + str(i))
 
     for i in thread_list:
@@ -81,19 +85,43 @@ def list_check_if_testable(listy):
         else:
             pass
 
+
+def multi_checkAllImg(path, x, y):
+    thread_list = []
+    proc = os.cpu_count()
+    list_img=[img for img in os.listdir(path) if img.endswith('.jpg')==True]
+    lengt = int(len(list_img) / proc)
+    chunks = [list_img[x:x+lengt] for x in range(0, len(list_img), lengt)]
+    for i in range(proc):
+        thread = threading.Thread(target=checkAllImg_list, args=(chunks[i], path, x, y))
+        thread_list.append(thread)
+        thread_list[i].start()
+        print('Started thread ' + str(i))
+    for i in thread_list:
+        thread.join()        
+  
+def checkAllImg_list(list, path, x, y):    
+    for image in tqdm.tqdm(list, desc="Checking images: "):
+            try:
+                imgSizeCheck(image, path, x, y)
+            except:
+                pass
+
 def multi_thread_check_if_testable(path_to_folder):
     path_to_folder = check_full_path(path_to_folder)
     multi_thread_crop(416, 416, path_to_folder, path_to_folder, annotations=False)
     list_img=[img for img in os.listdir(path_to_folder) if img.endswith('.jpg')==True]
     thread_list = []
     proc = os.cpu_count()
-    lengt = len(list_img)
+    lengt = int(len(list_img) / proc)
+    # print(lengt)
+    chunks = [list_img[x:x+lengt] for x in range(0, len(list_img), lengt)]
     for i in range(proc):
-        listy = list_img[int(i * lengt / proc):int((i + 1) * lengt / proc)]
-        thread = threading.Thread(target=list_check_if_testable, args=(listy, path_to_folder))
+        thread = threading.Thread(target=list_check_if_testable, args=(chunks[i], path_to_folder))
         thread_list.append(thread)
         thread_list[i].start()
         print('Started thread ' + str(i))
 
     for i in thread_list:
         thread.join()
+    multi_checkAllImg(path_to_folder, 416, 416)    
