@@ -332,40 +332,30 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
     temp = []
     # print(obj_name)
     with open(obj_name, 'r') as f:
-        for line in f:
-            print(line)
-            temp.append(line.strip())
+        lines = (line.rstrip() for line in f)
+        lines = list(line for line in lines if line) # Non-blank lines in a list
+        for line in lines:
+            # print(line)
+            temp.append(line)      
     for item in temp:
-        print(item)
         if item == 'ECHY':
             target_names.append('Echinocyte')
-            temp.remove(item)
         elif item == 'ERY':
             target_names.append('Erythrocyte')
-            temp.remove(item)
         elif item == 'LYM':
             target_names.append('Lymphocyte')
-            temp.remove(item)
         elif item == 'MON':
             target_names.append('Monocyte')
-            temp.remove(item)
         elif item == 'NEU':
             target_names.append('Neutrophil')
-            temp.remove(item)
         elif item == 'PLT':
             target_names.append('Platelet')
-            temp.remove(item)
         elif item == 'WBC':
-            target_names.append('White Blood Cell')
-            temp.remove(item)            
+            target_names.append('White Blood Cell')          
         elif item == 'CTRL':
-            print('Control')
             target_names.append('Control')
-            temp.remove(item)
         elif item == 'PHA':
-            print('PHA')
             target_names.append('PHA')
-            temp.remove(item)    
     target_names.sort()        
     # print('tock')
     for line in pud:

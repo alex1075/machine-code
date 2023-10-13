@@ -181,10 +181,10 @@ def test_fancy(path, outpout_name):
         pass
     else:
         os.mkdir(temp_path)
-    prep(path + 'test/', 'test.txt')
+    # prep(path + 'test/', 'test.txt')
     # os.system('darknet detector test ' + data + ' ' + cfg + ' ' + weights + ' -dont_show -ext_output < ' + path + 'test/test.txt' + ' > ' + temp_path + 'result.txt 2>&1')
     # make_ground_truth(temp_path + 'gt.txt', path + 'test/')
     # import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
-    check_all_annotations_for_duplicates(temp_path + 'results.txt')
-    plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name)
+    # check_all_annotations_for_duplicates(temp_path + 'results.txt')
+    plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path)
     do_math(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, True, names, True)
