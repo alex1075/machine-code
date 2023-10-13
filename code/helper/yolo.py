@@ -49,18 +49,31 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     test_file = test_dir + "test.txt"
     temp_file = temp + "temp.txt"
     make_ground_truth(temp + 'gt.txt', test_dir)
+    print("Using obj.data file: " + obj_data)
+    print("Using obj.names file: " + names)
+    print("Using backup directory: " + backup)
+    print("Using temp directory: " + temp)
+    print("Using test directory: " + test_dir)
+    print('Using Yolo version: ' + version)
     print("Initiating training for " + str(upper_range) + " epochs")
     print("Using starting weights: " + new_weights)
-    for i in tqdm(range(0, upper_range, 10), desc="Training", unit="epochs"):
+    for i in tqdm.tqdm(range(0, upper_range, 10), desc="Training", unit="epochs"):
+        # print('tick')
         os.system("darknet detector train " + obj_data + ' ' + cfg_10 + ' ' + new_weights + ' ' + args + '> /dev/null 2>&1')
         epoch = i + 10
         subprocess.run(['mv', backup + version + '_final.weights', backup + version + '_' + str(epoch) + '.weights'])
-        new_weights = backup + version + str(epoch) + ".weights"
+        new_weights = backup + version + '_' + str(epoch) + ".weights"
+        # print('tack')
         os.system("darknet detector test " + obj_data + " " + cfg_10 + " " + new_weights + " -dont_show -ext_output < " + test_file + " > " + temp_file + " 2>&1")
+        # print('tick-1')
         import_results_neo(temp_file, temp + 'results_' + str(epoch) + '.txt', names)
-        F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(epoch) + '.txt', 'export_' + str(epoch), False, ['ECHY', 'ERY', 'LYM', 'MON', 'NEU', 'PLT'], False)
+        # print('tack-1')
+        F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(epoch) + '.txt', 'export_' + str(epoch), temp, False, names, False)
+        # print('tick-2')
         li.append([epoch, F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro])
+        # print('tack-2')
         os.system("rm " + temp + "results_" + str(epoch) + ".txt")
+        # print('tock')
         if (epoch-10) % 50 == 0:
             pass
         else:
@@ -155,3 +168,23 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
         os.system('mv Report* ' + temp_path)
     inference_report('results.txt', 'Report')  
     os.remove(temp_path + 'result.txt')
+
+
+def test_fancy(path, outpout_name):
+    path = check_full_path(path)
+    weights = choose_weights(path)
+    cfg = choose_cfg(path)
+    data = path + 'obj.data'
+    names = path + 'obj.names'
+    temp_path = path + 'temp/'
+    if os.path.exists(temp_path) == True:
+        pass
+    else:
+        os.mkdir(temp_path)
+    prep(path + 'test/', 'test.txt')
+    # os.system('darknet detector test ' + data + ' ' + cfg + ' ' + weights + ' -dont_show -ext_output < ' + path + 'test/test.txt' + ' > ' + temp_path + 'result.txt 2>&1')
+    # make_ground_truth(temp_path + 'gt.txt', path + 'test/')
+    # import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
+    check_all_annotations_for_duplicates(temp_path + 'results.txt')
+    plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name)
+    do_math(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, True, names, True)

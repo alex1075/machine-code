@@ -1,3 +1,4 @@
+#! /usr/bin/python3
 import os
 import time
 from code.convert import *
@@ -54,19 +55,13 @@ def main():
     # display_banner()
     # selection_program()
     clear()
-    aaa = """
-    Main machine interface, what do you wish to do? 
-    1. Convert multimedia data to JPEG images
-    2. Prepare a dataset for training (image cropping, annotation file modification, etc)
-    3. Train a model
-    4. Test a model
-    5. Infer a model on biological data
-    6. Copy data over
-    7. Beta test a function
-    8. Exit
-    Enter a a selection: """
-    a = input(aaa)
-    if a == '1':
+    question = [inquirer.List('selection',
+                           message=" Main machine interface, what do you wish to do?",
+                           choices=['Convert multimedia data to JPEG images', 'Prepare a dataset for training', 'Train a model', 
+                                    'Test a model', 'Infer a model on biological data', 'Copy data over', 'Beta test a function', 'Exit'],
+                       ),]
+    a = inquirer.prompt(question)
+    if a['selection'] == 'Convert multimedia data to JPEG images':
         clear()
         data_processing_banner()
         print('Converting multimedia data to JPEG images')
@@ -102,7 +97,11 @@ def main():
                         end_program()
                 elif file.endswith('.png') or file.endswith('.tiff') or file.endswith('.bmp') or file.endswith('.jpg'):
                     print('Converting images to JPG')
-                    temp = check_full_path('temp/')
+                    try:
+                        temp = check_full_path('temp/')
+                    except:
+                        os.mkdir('temp/')
+                        temp = check_full_path('temp/')    
                     convert(path, True, temp)
                     print('Images converted')
                     print('Do you wish to cut the images into 416x416 pixels? (y/n)')
@@ -110,10 +109,18 @@ def main():
                     if cut == 'y':
                         ann = input('Is the data annotated? (y/n)')
                         if ann == 'y':
-                            os.mkdir('temp2/')
-                            chopUpDataset(temp, 'temp2/', 416, 416, True)
+                            temp2 = 'temp2/'
+                            try:
+                                os.mkdir(temp2)
+                            except:
+                                pass
+                            temp2 = check_full_path(temp2)
+                            try:
+                                chopUpDataset(temp, temp2, 416, 416, True)
+                            except:
+                                chopUpDataset(path, temp2, 416, 416, True)
                             os.system('rm -r ' + temp)
-                            os.system('mv temp2/ ' + temp)
+                            os.system('mv ' +temp2 + ' ' + temp)
                             end_program()
                         elif ann == 'n':
                             os.mkdir('temp2/')
@@ -164,9 +171,9 @@ def main():
                         end_program()
                 else:
                     print('File type not supported')
-    elif a == '2':
+    elif a['selection'] == 'Prepare a dataset for training':
         prepare_all_training()
-    elif a == '3':
+    elif a['selection'] == 'Train a model':
         clear()
         train_banner()
         prep = input('Do you wish to prepare the folder first? (y/n)')
@@ -199,14 +206,7 @@ def main():
         if g_choice == 'y':
             make_training_graphs(path + 'output.csv', path)
         train_complete_banner()    
-    elif a == '4':
-        clear()
-        test_banner()
-        print('Testing a model')
-        error_banner()
-        print(bcolors.ERROR + 'Function not yet implemented')
-        reset_color()
-    elif a == '5':
+    elif a['selection'] == 'Infer a model on biological data':
         clear()
         infer_banner()
         # print('Infering a model on biological data')
@@ -246,23 +246,27 @@ def main():
             error_banner()
             print(bcolors.ERROR + 'ERROR: Analyzing data over the network is not yet supported')
             reset_color()
-    elif a == '8':
+    elif a['selection'] == 'Exit':
         end_program()
-    elif a == '6':
+    elif a['selection'] == 'Copy data over':
         clear()
-        # print('Infering a model on biological data')
         string = input('Enter the name of the file to search for: ')
         path = input('Enter the path where to copy the data: (remember to end with a /)')    
         get_file_over(path, string)
         clear()
         end_program()
-    elif a == '7':
+    elif a['selection'] == 'Beta test a function':
         clear()
-        # print('Testing a function')
-        # path = input('Enter the path to the data: (remember to end with a /)')
+        beta_banner()
         path = 'temp/'
         multi_file_Video_convert(path)
         # multi_thread_crop(416, 416, path, 'temp2/', False)
+    elif a['selection'] == 'Test a model':
+        clear()
+        test_banner()
+        output_name = input('Enter the name of the output files: ')
+        path = choose_folder('/home/as-hunt/Etra-Space/')
+        test_fancy(path + '/', output_name)
     else:
         print('Invalid selection')
         time.sleep(2)

@@ -58,7 +58,7 @@ def count_classes_file(test_file='/home/as-hunt/Etra-Space/new_data_sidless/gt.t
             ax.pie(count, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
         plt.savefig(chart_name, bbox_inches='tight')    
 
-def plot_bbox_area(gt_file, pd_file, save_name='areas.png'):
+def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/'):
     '''Plots the areas of the bounding boxes in the ground truth and prediction from txt summary files'''
     names = []
     values = []
@@ -161,12 +161,10 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas.png'):
         elif item[0] == '5':
             gcl5.append(item[1])    
     fig, axs = plt.subplots(2, 2)        
-    # fig.tight_layout()
-    # fig = plt.gcf()
     fig.set_size_inches(16, 10)
-    # fig.add_gridspec(2, 3)
 
-    fig.savefig('test2png.png', dpi=100)
+
+    fig.savefig(path + 'test2png.png', dpi=100)
     
     df = pd.DataFrame({'Class':classesp, 'Area':dfp, 'Dataset':tagp}, columns=["Class", "Area", "Dataset"])
     for i in range(len(classesg)):
@@ -187,7 +185,7 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas.png'):
     sns.scatterplot(data=du, x="x", y="y", ax=axs[1, 1], hue='GT_class', palette=["Red", "Blue", "Green", "Purple", "Yellow", "Cyan"])
     axs[1, 1].set_title('Ground Truth Bbox by Predicted Bbox Areas coloured by Ground Truth Classes')
     axs[1, 1].set(xlabel='Ground Truth Areas (pixels)', ylabel='Predicted Areas (pixels)')
-    plt.savefig(save_name+'_details.png', bbox_inches='tight')
+    plt.savefig(path + save_name + '_details.png', bbox_inches='tight')
     plt.clf()
     x = du['x']
     y = du['y']
@@ -200,7 +198,7 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas.png'):
     sc = ax.scatter(x, y, z, c=w ,cmap='viridis')
     plt.legend(*sc.legend_elements(), bbox_to_anchor=(1.05, 1), loc=2)
     ax.view_init(40, 60)
-    plt.savefig(save_name+'_33.png', bbox_inches='tight')        
+    plt.savefig(path + save_name +'_3D.png', bbox_inches='tight')        
     
 def export_errors(gt_file, pd_file, save_name='Error_', save_path='/home/as-hunt/', path2='/home/as-hunt/Etra-Space/white-thirds/test/'):
     '''Plots images with bounding boxes of the ground truth and prediction from txt summary files in one document for comparison'''
@@ -321,19 +319,24 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
     ______________________________________________________________
     '''
     gt = open(gt_file, 'r')
+    # print('tick')
     gt_array = []
     gt_len = 0
     gt_cm = []
     pud = open(pd_file, 'r')
+    # print('tack')
     pd_len = 0
     pd_array = []
     pd_cm = []
     target_names = []
     temp = []
+    # print(obj_name)
     with open(obj_name, 'r') as f:
         for line in f:
+            print(line)
             temp.append(line.strip())
     for item in temp:
+        print(item)
         if item == 'ECHY':
             target_names.append('Echinocyte')
             temp.remove(item)
@@ -355,7 +358,16 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
         elif item == 'WBC':
             target_names.append('White Blood Cell')
             temp.remove(item)            
+        elif item == 'CTRL':
+            print('Control')
+            target_names.append('Control')
+            temp.remove(item)
+        elif item == 'PHA':
+            print('PHA')
+            target_names.append('PHA')
+            temp.remove(item)    
     target_names.sort()        
+    # print('tock')
     for line in pud:
         li = line.split(' ')
         name = li[0]
@@ -390,6 +402,7 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
                     pass
     y_actu = pd.Series(gt_cm, name='Ground Truth')
     y_pred = pd.Series(pd_cm, name='Predicted')
+    # print('tick')
     try:
         F1m = f1_score(y_actu, y_pred, average='macro')
         if math.isnan(F1m)==True:
@@ -487,6 +500,7 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
     except:
         fbeta2_score_macro =  '0'
     fbeta2_score_none = fbeta_score(y_actu, y_pred, average=None, beta=2)
+    # print('tock')
     try:
         name = 'Normalise Confusion Matrix ' + title + ' Post bbox matching normalised'
         df_confusion = pd.crosstab(y_actu, y_pred, dropna=False)
@@ -508,6 +522,7 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
             count_classes_file(gt_file, True, title + '_split.png', target_names)
     except:
         pass
+    # print('tick')
     if save_txt == True:
         file = open(path + title + '.txt', 'w')
         file.write("F1 macro: " + str(F1m) + '\n')
@@ -528,6 +543,7 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
         file.write("Fbeta2 score macro: " + str(fbeta2_score_macro) + '\n')
         file.write("Fbeta2 score none: " + str(fbeta2_score_none) + '\n')
         file.close()
+    # print('tock')    
     return F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro
 
 def inference_report(repot_txt, save_name='areas.png'):

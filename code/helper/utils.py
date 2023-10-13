@@ -240,7 +240,7 @@ def choose_folder(path):
                         ),]
     answer = inquirer.prompt(question)
     path = answer['folder'] + '/'
-    return path
+    return path  
 
 def choose_weights(path):
     array = []
@@ -253,7 +253,26 @@ def choose_weights(path):
                             choices=array,
                         ),]
     answer = inquirer.prompt(question)
-    return answer['weights']     
+    return answer['weights']  
+
+def choose_cfg(path):
+    array = []
+    path = check_full_path(path)
+    for d in os.listdir(path):
+        if d.endswith('.cfg') == True:
+            array.append(path + d)
+    array.append('Other')        
+    question = [inquirer.List('weights',
+                            message="Which AI model weights do you want to use?",
+                            choices=array,
+                        ),]
+    answer = inquirer.prompt(question)
+    if answer['weights'] == 'Other':
+        cfg = input('Enter path to cfg file: ')
+        return cfg
+    else:
+        return answer['weights']
+    
 
 def cat_file(file):
     os.system('cat ' + file)
@@ -264,7 +283,6 @@ def parent_dir(path):
 def video_len(filename):
     import cv2
     video = cv2.VideoCapture(filename)
-
     duration = video.get(cv2.CAP_PROP_POS_MSEC)
     frame_count = video.get(cv2.CAP_PROP_FRAME_COUNT)
 
@@ -276,9 +294,9 @@ def select_yolo_version(obj_names, path, upper_range):
                             choices=['yolov4', 'yolov5', 'yolov6', 'yolov7', 'yolov8'],
                         ),]
     answer = inquirer.prompt(question)
-    if answer == 'yolov4':
+    if answer['version'] == 'yolov4':
         prepare_cfg_v4(obj_names, path, upper_range)
-    elif answer == 'yolov5':
+    elif answer['version'] == 'yolov5':
         prepare_cfg_v5(obj_names, path, upper_range)
     else:
         raise Exception('Not yet implemented')
