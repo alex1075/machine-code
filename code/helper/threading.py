@@ -2,8 +2,6 @@ import os
 import time 
 import shutil
 import threading
-from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-from moviepy.editor import VideoFileClip
 from code.convert import *
 from code.helper.utils import *
 from code.helper.annotations import *
@@ -35,7 +33,6 @@ def multi_thread_crop(x, y, path, save_path, annotations=False):
         # print(chunks[i])
         # print('tic')
         print('Started thread ' + str(i))
-
     for i in thread_list:
         thread.join()
     toc = time.perf_counter()

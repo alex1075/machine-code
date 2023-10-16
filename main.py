@@ -51,7 +51,7 @@ def prepare_all_training():
                 select_yolo_version(out + 'obj.names', out, 100)
                 make_obj_data(path, True, out)
 
-def main():
+def main(docker=False):
     # display_banner()
     # selection_program()
     clear()
