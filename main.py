@@ -181,7 +181,7 @@ def main(docker=False):
             prepare_all_training()
         print('This is the folder with the Train/Test/Valid folders')
         print('and the obj.data, obj.names, and yolov4_10.cfg files')
-        path = input('Enter the path to the data: (remember to end with a /)')
+        path = choose_folder('/home/as-hunt/Etra-Space/')
         path = check_full_path(path)
         w_choice = input('Do you want to use the default weights to begin training? (y/n)')
         if w_choice == 'y':
@@ -195,12 +195,7 @@ def main(docker=False):
             argus = ' -mjpeg_port 8090 -clear -dont_show'
         else:
             argus = input('Enter the arguments: ')
-        e_choice = input('Do you want to use the default number of epochs? (y/n)')
-        if e_choice == 'y':
-            epochs = 10000
-        else:
-            epochs = input('Enter the number of epochs: ')
-            epochs = int(epochs)
+        epochs = choose_epochs()
         g_choice = input('Do you want to generate training graph reports? (y/n)')
         train_fancy(path, epochs, weights, argus)
         if g_choice == 'y':

@@ -4,11 +4,11 @@ results.txt
 temp/
 __pycache__
 .pyc
-.mp4
+*.mp4
 .txt
 .jpeg
-.jpg
-.png
+*.jpg
+*.png
 .tiff
 .bmp
 Basler/
@@ -16,7 +16,6 @@ Video/
 test_folder/
 temp2/
 bad.list
-predictions.jpg
 report.txt
 Import/
 testi/
@@ -32,5 +31,3 @@ test/
 A*/
 C*/
 K*/
-archive.tar.gz
-*.mp4

@@ -300,3 +300,16 @@ def select_yolo_version(obj_names, path, upper_range):
         prepare_cfg_v5(obj_names, path, upper_range)
     else:
         raise Exception('Not yet implemented')
+
+
+def choose_epochs():
+    question = [inquirer.List('epochs',
+                            message="How many epochs do you want to train?",
+                            choices=['50', '100', '250', '500', '750', '1000', '5000', '10000', 'Other'],
+                        ),]
+    answer = inquirer.prompt(question)
+    if answer['epochs'] == 'Other':
+        epochs = input('Enter number of epochs: ')
+        return epochs
+    else:
+        return answer['epochs']
