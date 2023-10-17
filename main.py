@@ -52,6 +52,9 @@ def prepare_all_training():
                 make_obj_data(path, True, out)
 
 def main(docker=False):
+    if docker == True:
+        print('Running containerised')
+        path = '/media'
     # display_banner()
     # selection_program()
     clear()
@@ -65,8 +68,9 @@ def main(docker=False):
         clear()
         data_processing_banner()
         print('Converting multimedia data to JPEG images')
-        path = input('Enter the path to the data: (remember to end with a /)')
-        path = check_full_path(path)
+        if docker == False:
+            path = input('Enter the path to the data: (remember to end with a /)')
+            path = check_full_path(path)
         temp = input('Use temp folder? (y/n)')
         for file in os.listdir(path):
             if temp == 'y':
@@ -132,8 +136,16 @@ def main(docker=False):
                 else:
                     print('File type not supported')
             elif temp == 'n':
-                out = input('Enter the path to the output folder: (end with a /)')
-                out = check_full_path(out)
+                if docker == False:
+                    out = input('Enter the path to the output folder: (end with a /)')
+                    out = check_full_path(out)
+                else:
+                    out = '/media/out/'
+                    if os.path.isdir(out) == False:
+                        os.system('mkdir ' + out)
+                    else:
+                        pass    
+                    out = check_full_path(out)
                 cut = input('Do you wish to cut the images into 416x416 pixels? (y/n)')
                 ann = input('Is the data annotated? (y/n)')
                 if file.endswith('.mp4'):
@@ -181,11 +193,15 @@ def main(docker=False):
             prepare_all_training()
         print('This is the folder with the Train/Test/Valid folders')
         print('and the obj.data, obj.names, and yolov4_10.cfg files')
-        path = choose_folder('/home/as-hunt/Etra-Space/')
+        if docker == False:
+            path = choose_folder('/home/as-hunt/Etra-Space/')
         path = check_full_path(path)
         w_choice = input('Do you want to use the default weights to begin training? (y/n)')
         if w_choice == 'y':
-            weights = '/home/as-hunt/Etra-Space/cfg/yolov4.conv.137'
+            if docker == True:
+                weights = '/root/yolov4.conv.137'
+            else:
+                weights = '/home/as-hunt/Etra-Space/cfg/yolov4.conv.137'
         else:
             weights = input('Enter the path to the weights: ')
         weights = check_full_path(weights)
@@ -205,11 +221,18 @@ def main(docker=False):
         clear()
         infer_banner()
         # print('Infering a model on biological data')
-        print('Has the data been copied to the local drive? (y/n)')
-        copy = input()
-        if copy == 'y':
-            path = input('Enter the path to the data: (remember to end with a /)')
-            model = choose_folder('/home/as-hunt/Etra-Space/')
+        q2 = inquirer.prompt([inquirer.List('selection',
+                           message="What do you wish to do?",
+                           choices=['Analyze data over the network', 'Analyze data locally'],
+                       ),])
+        aa = q2['selection']
+        if aa == 'Analyze data locally':
+            if docker == False:
+                path = input('Enter the path to the data: (remember to end with a /)')
+                model = choose_folder('/home/as-hunt/Etra-Space/')
+            else:
+                path = '/media/'
+                model = choose_folder('/media/')    
             name = choose_weights(model)
             a = input('Do you want to save generated labels? (y/n)')
             if a == 'y':
@@ -220,22 +243,28 @@ def main(docker=False):
             check_for_img(path)
             check_if_testable(path)    
             get_info(path, model, name, save)
-        elif copy == 'n':
-            string = input('Enter the name of the file to search for: ')
-            path = input('Enter the path where to copy the data: (remember to end with a /)')    
-            get_file_over(path, string)
-            clear()
-            model = choose_folder('/home/as-hunt/Etra-Space/')
-            name = choose_weights(model)
-            a = input('Do you want to save generated labels? (y/n)')
-            if a == 'y':
-                save = True
-            else:
-                save = False
-            clear()    
-            check_for_img(path)
-            check_if_testable(path)   
-            get_info(path, model, name, save)
+        elif aa == 'Analyze data over the network':
+            if docker == False:
+                string = input('Enter the name of the file to search for: ')
+                path = input('Enter the path where to copy the data: (remember to end with a /)')    
+                get_file_over(path, string)
+                clear()
+                model = choose_folder('/home/as-hunt/Etra-Space/')
+                name = choose_weights(model)
+                a = input('Do you want to save generated labels? (y/n)')
+                if a == 'y':
+                    save = True
+                else:
+                    save = False
+                clear()    
+                check_for_img(path)
+                check_if_testable(path)   
+                get_info(path, model, name, save)
+            elif docker == True:
+                clear()
+                error_banner()
+                print(bcolors.ERROR + 'ERROR: not supported within a docker container')
+                reset_color()    
         else:
             clear()
             error_banner()
@@ -244,12 +273,18 @@ def main(docker=False):
     elif a['selection'] == 'Exit':
         end_program()
     elif a['selection'] == 'Copy data over':
-        clear()
-        string = input('Enter the name of the file to search for: ')
-        path = input('Enter the path where to copy the data: (remember to end with a /)')    
-        get_file_over(path, string)
-        clear()
-        end_program()
+        if docker == False:
+            clear()
+            string = input('Enter the name of the file to search for: ')
+            path = input('Enter the path where to copy the data: (remember to end with a /)')    
+            get_file_over(path, string)
+            clear()
+            end_program()
+        elif docker == True:
+            clear()
+            error_banner()
+            print(bcolors.ERROR + 'ERROR: not supported within a docker container')
+            reset_color()
     elif a['selection'] == 'Beta test a function':
         clear()
         beta_banner()
@@ -257,11 +292,18 @@ def main(docker=False):
         multi_file_Video_convert(path)
         # multi_thread_crop(416, 416, path, 'temp2/', False)
     elif a['selection'] == 'Test a model':
-        clear()
-        test_banner()
-        output_name = input('Enter the name of the output files: ')
-        path = choose_folder('/home/as-hunt/Etra-Space/')
-        test_fancy(path + '/', output_name)
+        if docker == False:
+            clear()
+            test_banner()
+            output_name = input('Enter the name of the output files: ')
+            path = choose_folder('/home/as-hunt/Etra-Space/')
+            test_fancy(path + '/', output_name)
+        elif docker == True:
+            clear()
+            test_banner()
+            output_name = input('Enter the name of the output files: ')
+            path = choose_folder('/media/')
+            test_fancy(path + '/', output_name)
     else:
         print('Invalid selection')
         time.sleep(2)
@@ -270,5 +312,3 @@ def main(docker=False):
 
 if __name__ == '__main__':
     main()
-
-
