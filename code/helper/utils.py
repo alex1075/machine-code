@@ -4,7 +4,11 @@ import decimal
 import tqdm
 import subprocess
 import inquirer
+import numpy as np
 from code.helper.config import *
+from code.helper.annotations import *
+from code.helper.imageTools import *
+
 
 host_file = os.getcwd() + '/code/data/hosts'
 
@@ -313,3 +317,14 @@ def choose_epochs():
         return epochs
     else:
         return answer['epochs']
+    
+def yes_no_question(question):
+    question = [inquirer.List('yesno',
+                            message=question,
+                            choices=['Yes', 'No'],
+                        ),]
+    answer = inquirer.prompt(question)
+    if answer['yesno'] == 'Yes':
+        return 'y'
+    else:
+        return 'n'

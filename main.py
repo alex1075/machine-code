@@ -10,6 +10,8 @@ from code.helper.yolo import *
 from code.helper.fancy import *
 from code.helper.config import *
 from code.helper.threading import *
+from code.helper.augment import *
+from code.helper.annotations import *
 
 def end_program():
     a = input('Do you have something else to do? (y/n)')
@@ -71,7 +73,7 @@ def main(docker=False):
         if docker == False:
             path = input('Enter the path to the data: (remember to end with a /)')
             path = check_full_path(path)
-        temp = input('Use temp folder? (y/n)')
+        temp = yes_no_question('Use temp folder?')
         for file in os.listdir(path):
             if temp == 'y':
                 if file.endswith('.mp4'):
@@ -82,8 +84,8 @@ def main(docker=False):
                     print('Video converted')
                     time.sleep(2)
                     clear()
-                    cut = input('Do you wish to cut the images into 416x416 pixels? (y/n)')
-                    ann = input('Is the data annotated? (y/n)')
+                    cut = yes_no_question('Do you wish to cut the images into 416x416 pixels?')
+                    ann = yes_no_question('Is the data annotated?')
                     if cut == 'y':
                         if ann == 'y':
                             os.mkdir('temp2/')
@@ -108,10 +110,9 @@ def main(docker=False):
                         temp = check_full_path('temp/')    
                     convert(path, True, temp)
                     print('Images converted')
-                    print('Do you wish to cut the images into 416x416 pixels? (y/n)')
-                    cut = input()
+                    cut = yes_no_question('Do you wish to cut the images into 416x416 pixels?')
                     if cut == 'y':
-                        ann = input('Is the data annotated? (y/n)')
+                        ann = yes_no_question('Is the data annotated?')
                         if ann == 'y':
                             temp2 = 'temp2/'
                             try:
@@ -146,8 +147,8 @@ def main(docker=False):
                     else:
                         pass    
                     out = check_full_path(out)
-                cut = input('Do you wish to cut the images into 416x416 pixels? (y/n)')
-                ann = input('Is the data annotated? (y/n)')
+                cut = yes_no_question('Do you wish to cut the images into 416x416 pixels?')
+                ann = yes_no_question('Is the data annotated?')
                 if file.endswith('.mp4'):
                     print('Converting video to image series')
                     print('Save path: ' + out)
@@ -188,7 +189,7 @@ def main(docker=False):
     elif a['selection'] == 'Train a model':
         clear()
         train_banner()
-        prep = input('Do you wish to prepare the folder first? (y/n)')
+        prep = yes_no_question('Do you wish to prepare the folder first?')
         if prep == 'y':
             prepare_all_training()
         print('This is the folder with the Train/Test/Valid folders')
@@ -196,7 +197,7 @@ def main(docker=False):
         if docker == False:
             path = choose_folder('/home/as-hunt/Etra-Space/')
         path = check_full_path(path)
-        w_choice = input('Do you want to use the default weights to begin training? (y/n)')
+        w_choice = yes_no_question('Do you want to use the default weights to begin training?')
         if w_choice == 'y':
             if docker == True:
                 weights = '/root/yolov4.conv.137'
@@ -206,13 +207,13 @@ def main(docker=False):
             weights = input('Enter the path to the weights: ')
         weights = check_full_path(weights)
         print()
-        a_choice = input('Do you want to use the default arguments? -mjpeg_port 8090 -clear -dont_show (y/n)')
+        a_choice = yes_no_question('Do you want to use the default arguments? -mjpeg_port 8090 -clear -dont_show')
         if a_choice == 'y':
             argus = ' -mjpeg_port 8090 -clear -dont_show'
         else:
             argus = input('Enter the arguments: ')
         epochs = choose_epochs()
-        g_choice = input('Do you want to generate training graph reports? (y/n)')
+        g_choice = yes_no_question('Do you want to generate training graph reports?')
         train_fancy(path, epochs, weights, argus)
         if g_choice == 'y':
             make_training_graphs(path + 'output.csv', path)
@@ -220,7 +221,6 @@ def main(docker=False):
     elif a['selection'] == 'Infer a model on biological data':
         clear()
         infer_banner()
-        # print('Infering a model on biological data')
         q2 = inquirer.prompt([inquirer.List('selection',
                            message="What do you wish to do?",
                            choices=['Analyze data over the network', 'Analyze data locally'],
@@ -234,7 +234,7 @@ def main(docker=False):
                 path = '/media/'
                 model = choose_folder('/media/')    
             name = choose_weights(model)
-            a = input('Do you want to save generated labels? (y/n)')
+            a = yes_no_question('Do you want to save generated labels?')
             if a == 'y':
                 save = True
             else:
@@ -251,7 +251,7 @@ def main(docker=False):
                 clear()
                 model = choose_folder('/home/as-hunt/Etra-Space/')
                 name = choose_weights(model)
-                a = input('Do you want to save generated labels? (y/n)')
+                a = yes_no_question('Do you want to save generated labels?')
                 if a == 'y':
                     save = True
                 else:
@@ -288,9 +288,9 @@ def main(docker=False):
     elif a['selection'] == 'Beta test a function':
         clear()
         beta_banner()
-        path = 'temp/'
-        multi_file_Video_convert(path)
-        # multi_thread_crop(416, 416, path, 'temp2/', False)
+        augmentations = choose_augmentations()
+        path = '/home/as-hunt/machine-code/test1/'
+        iterate_augment(path, augmentations, True)
     elif a['selection'] == 'Test a model':
         if docker == False:
             clear()
@@ -308,7 +308,6 @@ def main(docker=False):
         print('Invalid selection')
         time.sleep(2)
         main()
-
 
 if __name__ == '__main__':
     main()

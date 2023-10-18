@@ -2,6 +2,7 @@ import os
 import re
 import cv2
 import decimal
+import numpy as np
 
 def add_bbox(image, bbox, classes):
     """
@@ -511,26 +512,38 @@ def del_edge_bbox_train(results_folder):
             except:
                 pass
 
-def pascal_to_yolo(array):
-    '''
-    Converts a pascal bounding box to a yolo bounding box
+def rotate_boxes90(boxes):
+    '''rotates a bounding box 90 degrees clockwise'''
+    old_center_x = boxes[0] 
+    old_center_y = boxes[1] 
+    old_width = boxes[2]
+    old_height = boxes[3]
+    new_center_x = 1.0 - float(old_center_y)
+    new_center_y = old_center_x
+    new_width = old_height
+    new_height = old_width
+    return [new_center_x, new_center_y, new_width, new_height]
 
-    Args:
-        array (list): A list containing the pascal bounding box coordinates
+def rotate_boxes180(boxes):
+    '''rotates a bounding box 180 degrees clockwise'''
+    old_center_x = boxes[0] 
+    old_center_y = boxes[1] 
+    old_width = boxes[2]
+    old_height = boxes[3]
+    new_center_x = 1.0 - float(old_center_x)
+    new_center_y = 1.0 - float(old_center_x)
+    new_width = old_width
+    new_height = old_height
+    return [new_center_x, new_center_y, new_width, new_height]
 
-    Returns:
-        list: A list containing the yolo bounding box coordinates
-    '''
-    x_min = array[0]
-    y_min = array[1]
-    x_max = array[2]
-    y_max = array[3]
-    width = x_max - x_min
-    height = y_max - y_min
-    x_cent = x_min + (width / 2)
-    y_cent = y_min + (height / 2)
-    x_cent = x_cent / 416
-    y_cent = y_cent / 416
-    width = width / 416
-    height = height / 416
-    return [x_cent, y_cent, width, height]            
+def rotate_boxes270(boxes):
+    '''rotates a bounding box 270 degrees clockwise'''
+    old_center_x = boxes[0] 
+    old_center_y = boxes[1] 
+    old_width = boxes[2]
+    old_height = boxes[3]
+    new_center_x = old_center_y
+    new_center_y = 1.0 - float(old_center_x)
+    new_width = old_height
+    new_height = old_width
+    return [new_center_x, new_center_y, new_width, new_height]

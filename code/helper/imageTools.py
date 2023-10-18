@@ -127,6 +127,86 @@ def increase_brightness(img, value=30):
     img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
     return img
 
+def decrease_brightness(img, value=30):
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(hsv)
+    lim = value
+    v[v > lim] -= value
+    v[v <= lim] = 0
+    final_hsv = cv2.merge((h, s, v))
+    img = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
+    return img
+
+def increase_contrast(img, value=30):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    l, a, b = cv2.split(img)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    cl = clahe.apply(l)
+    limg = cv2.merge((cl,a,b))
+    img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+    return img
+
+def decrease_contrast(img, value=30):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    l, a, b = cv2.split(img)
+    clahe = cv2.createCLAHE(clipLimit=0.5, tileGridSize=(8,8))
+    cl = clahe.apply(l)
+    limg = cv2.merge((cl,a,b))
+    img = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+    return img
+
+def increase_sharpness(img, value=30):
+    img = unsharp_mask(img, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0)
+    return img
+
+def decrease_sharpness(img, value=30):
+    img = unsharp_mask(img, kernel_size=(5, 5), sigma=1.0, amount=1.0, threshold=0)
+    return img
+
+def increase_saturation(img, value=30):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(img)
+    s[s > 255 - value] = 255
+    s[s <= 255 - value] += value
+    img = cv2.merge((h, s, v))
+    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+    return img
+
+def decrease_saturation(img, value=30):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(img)
+    s[s < value] = 0
+    s[s >= value] -= value
+    img = cv2.merge((h, s, v))
+    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+    return img
+
+def increase_hue(img, value=30):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(img)
+    h[h > 255 - value] = 255
+    h[h <= 255 - value] += value
+    img = cv2.merge((h, s, v))
+    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+    return img
+
+def decrease_hue(img, value=30):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    h, s, v = cv2.split(img)
+    h[h < value] = 0
+    h[h >= value] -= value
+    img = cv2.merge((h, s, v))
+    img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+    return img
+
+def increase_blur(img, value=30):
+    img = cv2.GaussianBlur(img,(5,5),value)
+    return img
+
+def decrease_blur(img, value=30):
+    img = cv2.GaussianBlur(img,(5,5),value)
+    return img
+
 def background_removal_with_alpha_sub(original_img, bacground_img, alpha=0.5):
     img = cv2.imread(original_img)
     background = cv2.imread(bacground_img)
