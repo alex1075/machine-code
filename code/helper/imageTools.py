@@ -44,7 +44,6 @@ def crop_images(x, y, path, save_path, annotations=True):
         shutil.copy(path + "classes.txt", save_path)
     else:
         pass
-    path = check_full_path(path)
     images = os.listdir(path)
     for image in tqdm.tqdm(images, desc="Cropping images"):
         if image.endswith(".jpg"):
