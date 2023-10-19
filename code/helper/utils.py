@@ -314,9 +314,9 @@ def choose_epochs():
     answer = inquirer.prompt(question)
     if answer['epochs'] == 'Other':
         epochs = input('Enter number of epochs: ')
-        return epochs
+        return int(epochs)
     else:
-        return answer['epochs']
+        return int(answer['epochs'])
     
 def yes_no_question(question):
     question = [inquirer.List('yesno',

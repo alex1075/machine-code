@@ -491,27 +491,25 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
         fbeta2_score_macro =  '0'
     fbeta2_score_none = fbeta_score(y_actu, y_pred, average=None, beta=2)
     # print('tock')
-    try:
-        name = 'Normalise Confusion Matrix ' + title + ' Post bbox matching normalised'
-        df_confusion = pd.crosstab(y_actu, y_pred, dropna=False)
-        df_conf_norm = df_confusion.div(df_confusion.sum(axis=1), axis="index")
-        plt.title(title)
-        sns.set(font_scale=1.4) # for label size
-        sns.heatmap(df_conf_norm, cmap='coolwarm', annot=True, annot_kws={"size": 16}, xticklabels=target_names, yticklabels=target_names) # font size
-        tick_marks = np.arange(len(df_conf_norm.columns))
-        if save_png == True:
-            plt.savefig(path + name + '.png', bbox_inches='tight')
-        plt.clf()
-        name = 'Confusion Matrix ' + title + ' Post bbox matching'
-        plt.title(title)
-        sns.set(font_scale=1.4) # for label size
-        sns.heatmap(df_confusion, cmap='coolwarm', annot=True, annot_kws={"size": 16}, xticklabels=target_names, yticklabels=target_names) # font size
-        tick_marks = np.arange(len(df_confusion.columns))
-        if save_png == True:
-            plt.savefig(path + name + '.png', bbox_inches='tight')
-            count_classes_file(gt_file, True, title + '_split.png', target_names)
-    except:
-        pass
+    name = 'Normalise Confusion Matrix ' + title + ' Post bbox matching normalised'
+    df_confusion = pd.crosstab(y_actu, y_pred, dropna=False)
+    df_conf_norm = df_confusion.div(df_confusion.sum(axis=1), axis="index")
+    plt.title(title)
+    sns.set(font_scale=1.4) # for label size
+    # print(df_conf_norm)
+    sns.heatmap(df_conf_norm, cmap='coolwarm', annot=True, annot_kws={"size": 16}, xticklabels=target_names, yticklabels=target_names) # font size
+    tick_marks = np.arange(len(df_conf_norm.columns))
+    if save_png == True:
+        plt.savefig(path + name + '.png', bbox_inches='tight')
+    plt.clf()
+    name = 'Confusion Matrix ' + title + ' Post bbox matching'
+    plt.title(title)
+    sns.set(font_scale=1.4) # for label size
+    sns.heatmap(df_confusion, cmap='coolwarm', annot=True, annot_kws={"size": 16}, xticklabels=target_names, yticklabels=target_names) # font size
+    tick_marks = np.arange(len(df_confusion.columns))
+    if save_png == True:
+        plt.savefig(path + name + '.png', bbox_inches='tight')
+        count_classes_file(gt_file, True, title + '_split.png', target_names)
     # print('tick')
     if save_txt == True:
         file = open(path + title + '.txt', 'w')
