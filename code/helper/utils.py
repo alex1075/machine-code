@@ -328,3 +328,13 @@ def yes_no_question(question):
         return 'y'
     else:
         return 'n'
+
+def read_classes(obj_names):
+    with open(obj_names, 'r') as f:
+        classes = f.readlines()
+    classes = [line.strip() for line in classes]
+    classes.sort()
+    return classes
+
+def match_classes(object_class, classes_list):
+    return classes_list[object_class]
