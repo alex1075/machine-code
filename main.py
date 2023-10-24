@@ -62,8 +62,9 @@ def main(docker=False):
     clear()
     question = [inquirer.List('selection',
                            message=" Main machine interface, what do you wish to do?",
-                           choices=['Convert multimedia data to JPEG images', 'Prepare a dataset for training', 'Train a model', 
-                                    'Test a model', 'Infer a model on biological data', 'Copy data over', 'Beta test a function', 'Exit'],
+                           choices=['Convert multimedia data to JPEG images', 'Prepare a dataset for training', 'Dataset augmentation', 
+                                    'Train a model', 'Test a model', 'Infer a model on biological data', 'Copy data over', 
+                                    'Beta test a function', 'Exit'],
                        ),]
     a = inquirer.prompt(question)
     if a['selection'] == 'Convert multimedia data to JPEG images':
