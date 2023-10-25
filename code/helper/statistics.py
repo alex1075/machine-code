@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from code.helper.utils import read_classes, match_classes
+from code.helper.annotations import make_ground_truth
 
 def get_distribution_plots(gt_file, save_name='Distribution_plots', save_path='/home/as-hunt/', obj_names='/home/as-hunt/Etra-Space/pha/obj.names'):
     classes = []
@@ -33,3 +34,7 @@ def get_distribution_plots(gt_file, save_name='Distribution_plots', save_path='/
     plt.xlabel('Bounding box area (in pixels)')
     plt.ylabel('Counts')
     plt.savefig(os.path.join(save_path, save_name + '_separate'))
+
+def make_model_folder(path_to_folder, name, save_directory, obj_names):
+    make_ground_truth(path_to_folder + 'gt.txt', path_to_folder)
+    get_distribution_plots(path_to_folder + 'gt.txt', name, save_directory, obj_names)
