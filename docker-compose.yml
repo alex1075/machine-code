@@ -1,0 +1,18 @@
+version: '3.9'
+services:
+    phd:
+        image: 'alex1075/phd:machine-code'
+        volumes:
+            - '/home/as-hunt/Etra-Space/PHA-leuko:/media'
+        tty: true
+        stdin_open: true
+        ports:
+            - '8090:8090'
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - driver: nvidia
+                  count: 1
+                  capabilities: [gpu]
+

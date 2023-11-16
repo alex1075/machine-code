@@ -1,8 +1,10 @@
-FROM nvidia/cuda:11.7.1-devel-ubuntu20.04
+FROM nvidia/cuda:12.1.0-devel-ubuntu22.04
 LABEL maintainer="Alexander Hunt <alexander.hunt@ed.ac.uk>"
 LABEL description="Docker image setup to use Darknet with Cuda 11.7.1, Cudnn 8 and OpenCV 4.6.0 on Ubuntu 20.04"
 RUN apt update && apt upgrade -y
-RUN DEBIAN_FRONTEND=noninteractive apt-get -yq install build-essential git pkg-config \
+ENV TZ=Europe/London \
+    DEBIAN_FRONTEND=noninteractive
+RUN apt-get -yq install build-essential git pkg-config \
     libcudnn8* wget unzip python3 python-is-python3 python3-pip \
     libssl-dev zip unzip libeigen3-dev libgflags-dev libgoogle-glog-dev -y
 RUN apt-get install libjpeg-dev libpng-dev libtiff-dev libopenjp2-7-dev -y
@@ -39,7 +41,9 @@ RUN make
 RUN ln -s /root/darknet/darknet /usr/bin
 WORKDIR /root/
 COPY main.py /root/main.py
+COPY yolov4.conv.137 /root/yolov4.conv.137
 COPY code/ /root/code
+COPY config.py.docker /root/code/data/config.py
 ENTRYPOINT ["./main.py"]
 
 

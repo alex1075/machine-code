@@ -511,6 +511,29 @@ def del_edge_bbox_train(results_folder):
                     os.remove(file.replace('.txt', '.jpg'))
             except:
                 pass
+def pascal_to_yolo(array):
+    '''
+    Converts a pascal bounding box to a yolo bounding box
+
+    Args:
+        array (list): A list containing the pascal bounding box coordinates
+
+    Returns:
+        list: A list containing the yolo bounding box coordinates
+    '''
+    x_min = array[0]
+    y_min = array[1]
+    x_max = array[2]
+    y_max = array[3]
+    width = x_max - x_min
+    height = y_max - y_min
+    x_cent = x_min + (width / 2)
+    y_cent = y_min + (height / 2)
+    x_cent = x_cent / 416
+    y_cent = y_cent / 416
+    width = width / 416
+    height = height / 416
+    return [x_cent, y_cent, width, height]      
 
 def rotate_boxes90(boxes):
     '''rotates a bounding box 90 degrees clockwise'''

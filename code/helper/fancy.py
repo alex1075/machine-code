@@ -226,4 +226,9 @@ def train_complete_banner():
                                   \/_/                            
 ''')
     time.sleep(2)
-    
+
+def end_program():
+        print('Exiting')
+        banner_goodbye()
+        clear()
+        exit()    

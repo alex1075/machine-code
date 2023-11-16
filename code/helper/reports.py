@@ -58,7 +58,7 @@ def count_classes_file(test_file='/home/as-hunt/Etra-Space/new_data_sidless/gt.t
             ax.pie(count, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
         plt.savefig(chart_name, bbox_inches='tight')    
 
-def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/'):
+def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/', obj_name='/home/as-hunt/Etra-Space/white-thirds/obj.names'):
     '''Plots the areas of the bounding boxes in the ground truth and prediction from txt summary files'''
     names = []
     values = []
@@ -75,6 +75,40 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/'):
     tagg = []
     ious = []
     dfg = []
+    temp = []
+    target_names = []
+    with open(obj_name, 'r') as f:
+        lines = (line.rstrip() for line in f)
+        lines = list(line for line in lines if line) # Non-blank lines in a list
+        for line in lines:
+            # print(line)
+            temp.append(line)      
+    for item in temp:
+        if item == 'ECHY':
+            target_names.append('Echinocytes')
+        elif item == 'ERY':
+            target_names.append('Erythrocyte')
+        elif item == 'LYM':
+            target_names.append('Lymphocyte')
+        elif item == 'MON':
+            target_names.append('Monocyte')
+        elif item == 'NEU':
+            target_names.append('Neutrophil')
+        elif item == 'PLT':
+            target_names.append('Platelet')
+        elif item == 'WBC':
+            target_names.append('White Blood Cell')          
+        elif item == 'CTRL':
+            target_names.append('Control')
+        elif item == 'PHA':
+            target_names.append('PHA')
+        elif item == 'LYM-A':
+            target_names.append('Lymphocyte-Activated')
+        elif item == 'MON-A':
+            target_names.append('Monocyte-Activated')
+        elif item == 'NEU-A':
+            target_names.append('Neutrophil-Activated')
+    target_names.sort()     
     listed = open(pd_file, 'r')
     losted = open(gt_file, 'r')
     for line in listed:
@@ -83,13 +117,13 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/'):
         classes = li[1]
         bbox = [int(li[2]), int(li[3]), int(li[4]), int(li[5])]
         confidence = li[6]
-        pd_array.append([name, bbox, classes, confidence])
+        pd_array.append([name, bbox, target_names[int(classes)], confidence])
     for lune in losted:
         lu = lune.split(' ')
         nome = lu[0]
         clisses = lu[1]
         bbax = [int(lu[2]), int(lu[3]), int(lu[4]), int(lu[5])]
-        gt_array.append([nome, bbax, clisses])
+        gt_array.append([nome, bbax, target_names[int(clisses)]])
     for item in pd_array:
         name = item[0]
         bbox = item[1]
@@ -113,10 +147,10 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/'):
                     tagg.append('GT')
                     if classes == clisses:
                         match = True
-                        combined.append([(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))), (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), float(classes), float(clisses), match, float(iou(bbax, bbox))])
+                        combined.append([(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))), (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), classes, clisses, match, float(iou(bbax, bbox))])
                     else:   
                         match = False
-                        combined.append([(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))), (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), float(classes), float(clisses), match, float(iou(bbax, bbox))])
+                        combined.append([(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))), (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), classes, clisses, match, float(iou(bbax, bbox))])
                     gt_array.pop(place)
     for item in areas:   
         names.append(item[0]) 
@@ -161,20 +195,13 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/'):
         elif item[0] == '5':
             gcl5.append(item[1])    
     fig, axs = plt.subplots(2, 2)        
-    fig.set_size_inches(16, 10)
-
-
-    fig.savefig(path + 'test2png.png', dpi=100)
-    
+    fig.set_size_inches(16, 10)   
     df = pd.DataFrame({'Class':classesp, 'Area':dfp, 'Dataset':tagp}, columns=["Class", "Area", "Dataset"])
     for i in range(len(classesg)):
         new_row = {'Class': classesg[i], 'Area': dfg[i], 'Dataset': tagg[i]}
-        df = df.append(new_row, ignore_index=True)
+        df = df._append(new_row, ignore_index=True)
     sns.violinplot(data=df, cut=0, x='Class', y='Area', inner='box', scale='count', hue="Dataset", split=True, ax=axs[0, 0])
     axs[0, 0].set_title('Bbox Area Plotting per Class')
-
-    # plt.savefig(save_name+'_2.png', bbox_inches='tight')
-    # plt.clf()
     du = pd.DataFrame(combined, columns=["x", "y", 'PD_class', 'GT_class', 'Match', 'IoU'])
     sns.scatterplot(data=du, x="x", y="y", ax=axs[1, 0], hue='Match', palette=["Red", "Blue",])
     axs[1, 0].set_title('Ground Truth Bbox by Predicted Bbox Areas coloured by Match of Classes')
@@ -186,19 +213,19 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/'):
     axs[1, 1].set_title('Ground Truth Bbox by Predicted Bbox Areas coloured by Ground Truth Classes')
     axs[1, 1].set(xlabel='Ground Truth Areas (pixels)', ylabel='Predicted Areas (pixels)')
     plt.savefig(path + save_name + '_details.png', bbox_inches='tight')
-    plt.clf()
-    x = du['x']
-    y = du['y']
-    z = du['IoU']
-    w = du['PD_class']
-    plt.rcParams["figure.figsize"] = [16, 10]
-    plt.rcParams["figure.autolayout"] = True
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    sc = ax.scatter(x, y, z, c=w ,cmap='viridis')
-    plt.legend(*sc.legend_elements(), bbox_to_anchor=(1.05, 1), loc=2)
-    ax.view_init(40, 60)
-    plt.savefig(path + save_name +'_3D.png', bbox_inches='tight')        
+    # plt.clf()
+    # x = du['x']
+    # y = du['y']
+    # z = du['IoU']
+    # w = du['PD_class']
+    # plt.rcParams["figure.figsize"] = [16, 10]
+    # plt.rcParams["figure.autolayout"] = True
+    # fig = plt.figure()
+    # ax = fig.add_subplot(projection='3d')
+    # sc = ax.scatter(x, y, z, c=w ,cmap='viridis')
+    # plt.legend(*sc.legend_elements(), bbox_to_anchor=(1.05, 1), loc=2)
+    # ax.view_init(40, 60)
+    # plt.savefig(path + save_name +'_3D.png', bbox_inches='tight')        
     
 def export_errors(gt_file, pd_file, save_name='Error_', save_path='/home/as-hunt/', path2='/home/as-hunt/Etra-Space/white-thirds/test/'):
     '''Plots images with bounding boxes of the ground truth and prediction from txt summary files in one document for comparison'''
@@ -339,7 +366,7 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
             temp.append(line)      
     for item in temp:
         if item == 'ECHY':
-            target_names.append('Echinocyte')
+            target_names.append('Echinocytes')
         elif item == 'ERY':
             target_names.append('Erythrocyte')
         elif item == 'LYM':
@@ -356,6 +383,12 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
             target_names.append('Control')
         elif item == 'PHA':
             target_names.append('PHA')
+        elif item == 'LYM-A':
+            target_names.append('Lymphocyte-Activated')
+        elif item == 'MON-A':
+            target_names.append('Monocyte-Activated')
+        elif item == 'NEU-A':
+            target_names.append('Neutrophil-Activated')
     target_names.sort()        
     # print('tock')
     for line in pud:
@@ -491,17 +524,18 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
         fbeta2_score_macro =  '0'
     fbeta2_score_none = fbeta_score(y_actu, y_pred, average=None, beta=2)
     # print('tock')
+    plt.clf()
+    plt.figure(figsize = (10,10))
     name = 'Normalise Confusion Matrix ' + title + ' Post bbox matching normalised'
     df_confusion = pd.crosstab(y_actu, y_pred, dropna=False)
     df_conf_norm = df_confusion.div(df_confusion.sum(axis=1), axis="index")
     plt.title(title)
-    sns.set(font_scale=1.4) # for label size
-    # print(df_conf_norm)
     sns.heatmap(df_conf_norm, cmap='coolwarm', annot=True, annot_kws={"size": 16}, xticklabels=target_names, yticklabels=target_names) # font size
     tick_marks = np.arange(len(df_conf_norm.columns))
     if save_png == True:
         plt.savefig(path + name + '.png', bbox_inches='tight')
     plt.clf()
+    plt.figure(figsize = (10,10))
     name = 'Confusion Matrix ' + title + ' Post bbox matching'
     plt.title(title)
     sns.set(font_scale=1.4) # for label size

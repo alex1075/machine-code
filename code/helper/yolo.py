@@ -91,7 +91,6 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
     data = model_path + 'obj.data'
     names = model_path + 'obj.names'
     temp_path = data_path + 'temp/'
-    # print(data_path, model_path, model_name, cfg, data, names, temp_path)
     if os.path.exists(temp_path) == True:
         pass
     else:
@@ -106,7 +105,7 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
     results = open(temp_path + 'result.txt', 'r')
     lines = results.readlines()
     save = []
-    cells = ('LYM:', 'MON:', 'NEU:', 'ERY:', 'PLT:', 'ECHY', 'WBC:')
+    cells = ('LYM:', 'MON:', 'NEU:', 'ERY:', 'PLT:', 'ECHY', 'WBC:', 'LYM-', 'MON-', 'NEU-', 'WBC-')
     for line in lines:
         if line[0:4] in cells:
             lin = re.split(':|%|t|w|h', line)
@@ -123,6 +122,10 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
     lym = df.loc[df['Cell type'] == 'LYM']
     mon = df.loc[df['Cell type'] == 'MON']
     neu = df.loc[df['Cell type'] == 'NEU']
+    lyma = df.loc[df['Cell type'] == 'LYM-']
+    mona = df.loc[df['Cell type'] == 'MON-']
+    neua = df.loc[df['Cell type'] == 'NEU-']
+    wbca = df.loc[df['Cell type'] == 'WBC-']
     if os.path.exists(os.getcwd() + '/report.txt') == True:
         os.remove(os.getcwd() + '/report.txt')
     with open(os.getcwd() + '/report.txt', 'x') as f:
@@ -149,6 +152,18 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
         if len(neu) != 0:
             f.write('Counted ' + str(len(neu)) + ' neutrophils\n')
             f.write('Average confidence: ' + str(round(float(neu['Confidence'].mean()), 2)) + '\n')
+        if len(lyma) != 0:
+            f.write('Counted ' + str(len(lyma)) + ' activated lymphocytes\n')
+            f.write('Average confidence: ' + str(round(float(lyma['Confidence'].mean()), 2)) + '\n')
+        if len(mona) != 0:
+            f.write('Counted ' + str(len(mona)) + ' activated monocytes\n')
+            f.write('Average confidence: ' + str(round(float(mona['Confidence'].mean()), 2)) + '\n')
+        if len(neua) != 0:
+            f.write('Counted ' + str(len(neua)) + ' activated neutrophils-\n')
+            f.write('Average confidence: ' + str(round(float(neua['Confidence'].mean()), 2)) + '\n')
+        if len(wbca) != 0:
+            f.write('Counted ' + str(len(wbca)) + ' activated white blood cells-\n')
+            f.write('Average confidence: ' + str(round(float(wbca['Confidence'].mean()), 2)) + '\n')
     if sava_annotations == True:
         import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
         check_all_annotations_for_duplicates(temp_path + 'results.txt')
@@ -186,5 +201,5 @@ def test_fancy(path, outpout_name):
     make_ground_truth(temp_path + 'gt.txt', path + 'test/')
     import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
     check_all_annotations_for_duplicates(temp_path + 'results.txt')
-    plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path)
+    plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, names)
     do_math(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, True, names, True)
