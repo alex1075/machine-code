@@ -271,6 +271,8 @@ def choose_cfg(path):
                             choices=array,
                         ),]
     answer = inquirer.prompt(question)
+    if len(answer['weights']) == 1:
+        return answer['weights'][0]
     if answer['weights'] == 'Other':
         cfg = input('Enter path to cfg file: ')
         return cfg
@@ -292,16 +294,16 @@ def video_len(filename):
 
     return duration, frame_count    
 
-def select_yolo_version(obj_names, path, upper_range):
+def select_yolo_version(obj_names, path, upper_range, output_name):
     question = [inquirer.List('version',
                             message="Which YOLO version do you want to use?",
                             choices=['yolov4', 'yolov5', 'yolov6', 'yolov7', 'yolov8'],
                         ),]
     answer = inquirer.prompt(question)
     if answer['version'] == 'yolov4':
-        prepare_cfg_v4(obj_names, path, upper_range)
+        prepare_cfg_v4(obj_names, path, upper_range, output_name='yolov4_10.cfg')
     elif answer['version'] == 'yolov5':
-        prepare_cfg_v5(obj_names, path, upper_range)
+        prepare_cfg_v5(obj_names, path, upper_range, output_name='yolov5_10.cfg')
     else:
         raise Exception('Not yet implemented')
 
@@ -338,3 +340,24 @@ def read_classes(obj_names):
 
 def match_classes(object_class, classes_list):
     return classes_list[object_class]
+
+def convert_yolo_to_voc(cent_x, cent_y, width, height, frame_size=(416, 416)):
+    """
+    Convert center coordinates and dimensions to top-left and bottom-right coordinates.
+
+    Parameters:
+    - cent_x: X-coordinate of the center.
+    - cent_y: Y-coordinate of the center.
+    - width: Width of the object.
+    - height: Height of the object.
+    - frame_size: Tuple representing the size of the frame (default is (416, 416)).
+
+    Returns:
+    Tuple (top_x, top_y, bottom_x, bottom_y)
+    """
+    x, y = frame_size
+    top_x = int(max(0, cent_x - width / 2))
+    top_y = int(max(0, cent_y - height / 2))
+    bottom_x = int(min(x, cent_x + width / 2))
+    bottom_y = int(min(y, cent_y + height / 2))
+    return top_x, top_y, bottom_x, bottom_y

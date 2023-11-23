@@ -439,7 +439,7 @@ def import_and_filter_result_neo(input_file='/home/as-hunt/result.txt', results_
                             else:
                                 res.write(image_name + ' ' + str(classes) + ' ' + str(left_x) + ' ' + str(top_y) + ' ' + str(right_x) + ' ' + str(bottom_y) + ' ' + str(confidence / 100) + ' \n')
             else:
-                pass                    
+                pass                               
 
 def check_all_annotations_for_duplicates(annotation_file):
     start = []

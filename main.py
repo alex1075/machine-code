@@ -25,7 +25,7 @@ def main(docker=False):
     if docker == False:
         choice = ['Convert multimedia data to JPEG images', 'Prepare a dataset for training', 'Dataset augmentation', 
                                     'Train a model', 'Test a model', 'Infer a model on biological data', 'Copy data over', 
-                                    'Beta test a function', 'Exit']
+                                    'Train with five fold validation', 'Test 5 fold validation', 'Beta test a function', 'Exit']
     elif docker == True:
         choice = ['Convert multimedia data to JPEG images', 'Prepare a dataset for training', 'Dataset augmentation', 
                                     'Train a model', 'Test a model', 'Infer a model on biological data', 'Exit']
@@ -72,9 +72,11 @@ def main(docker=False):
             argus = input('Enter the arguments: ')
         epochs = choose_epochs()
         g_choice = yes_no_question('Do you want to generate training graph reports?')
-        train_fancy(path, epochs, weights, argus)
         if g_choice == 'y':
+            train_fancy(path, epochs, weights, argus, True)
             make_training_graphs(path + 'output.csv', path)
+        elif g_choice == 'n':
+            train_fancy(path, epochs, weights, argus, False)
         train_complete_banner()    
     elif a['selection'] == 'Infer a model on biological data':
         clear()
@@ -133,7 +135,10 @@ def main(docker=False):
     elif a['selection'] == 'Beta test a function':
         clear()
         beta_banner()
-        print('No functions to test.')
+        # print('No functions to test.')
+        path1 = '/home/as-hunt/prob-mon/'
+        path2 = '/home/as-hunt/test/'
+        train_5_fold_validation(path1, path2)
     elif a['selection'] == 'Test a model':
         clear()
         test_banner()
@@ -143,6 +148,55 @@ def main(docker=False):
         elif docker == True:    
             path = choose_folder('/media/')
         test_fancy(path + '/', output_name)
+    elif a['selection'] == 'Dataset augmentation':
+        print('..... crickets .....')
+    elif a['selection'] == 'Train with five fold validation':
+        clear()
+        qq = yes_no_question('Is the origin folder in Etra-Space?')
+        if qq == 'y':
+            path = '/home/as-hunt/Etra-Space/'
+            path1 = choose_folder(path)
+        else:
+            path = '/home/as-hunt/'
+            path1 = choose_folder(path)
+        path2 = input('Enter the path to the working folder: ')
+        path2 = check_full_path(path2)
+        os.makedirs(path2, exist_ok=True)
+        w_choice = yes_no_question('Do you want to use the default weights to begin training?')
+        if w_choice == 'y':
+                weights = '/home/as-hunt/Etra-Space/cfg/yolov4.conv.137'
+        else:
+                weights = input('Remember to have the files mounted in /media. Enter the path to the weights: ')
+        weights = check_full_path(weights)
+        a_choice = yes_no_question('Do you want to use the default arguments? -mjpeg_port 8090 -clear -dont_show')
+        if a_choice == 'y':
+            argus = ' -mjpeg_port 8090 -clear -dont_show'
+        else:
+            argus = input('Enter the arguments: ')
+        epochs = choose_epochs()
+        g_choice = yes_no_question('Do you want to generate training graph reports?') 
+        if g_choice == 'y':
+            train_5_fold_validation(path1, path2, epochs, weights, argus, True)
+            for i in range(1,6,1):
+                make_training_graphs(path2 + f'/{i}/' + 'output.csv', path2)
+        elif g_choice == 'n':
+            train_5_fold_validation(path1, path2, epochs, weights, argus, False)   
+    elif a['selection'] == 'Test 5 fold validation':
+        clear()
+        cv2q = yes_no_question('Do you want to use OpenCV for the test?')
+        qq = yes_no_question('Is the origin folder in Etra-Space?')
+        if qq == 'y':
+            path = '/home/as-hunt/Etra-Space/'
+            path1 = choose_folder(path)
+        else:
+            path = '/home/as-hunt/'
+            path1 = choose_folder(path)
+        output_name = input('Enter the name of the output files: ')    
+        path = check_full_path(path1)
+        if cv2q == 'y':
+            test_5_fold_validation_cv2(path, output_name)
+        elif cv2q == 'n':
+            test_5_fold_validation(path, output_name)                    
     else:
         print('Invalid selection')
         time.sleep(2)

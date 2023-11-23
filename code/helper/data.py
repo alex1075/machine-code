@@ -248,7 +248,7 @@ def split_to_X_folders(source_folder, destination_folder, number=int):
     destination_folders = [f"{destination_folder}/f{i+1}" for i in range(number)]
     split_images_and_annotations(source_folder, destination_folders)            
 
-def combine_x_folders(source_folders, destination_folder, number=int):
+def combine_three_folders(source_folders, destination_folder, n1=int, n2=int, n3=int, n4=int, n5=int, n6=int, n7=int, n8=int, n9=int, n10=int):
     '''Combine X folders into one
     Args:
         source_folders: a list of folders to copy the images and annotations from
@@ -258,5 +258,5 @@ def combine_x_folders(source_folders, destination_folder, number=int):
     Returns:
         None
     '''
-    source_folders = [f"{source_folders}/f{i+1}" for i in range(number)]
+    source_folders = [f"{source_folders}/f{n1}", f"{source_folders}/f{n2}", f"{source_folders}/f{n3}"]
     combine_folders(source_folders, destination_folder)    

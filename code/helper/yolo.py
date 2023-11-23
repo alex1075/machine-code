@@ -1,4 +1,5 @@
 import os
+import cv2
 import tqdm
 import subprocess
 import shutil
@@ -7,6 +8,68 @@ import pandas as pd
 from code.helper.annotations import *
 from code.helper.reports import *
 from code.helper.utils import *
+from code.helper.data import *
+
+
+def cv2_load_net(model_weights, model_config):
+    # Load the pre-trained YOLO model and corresponding classes
+    net = cv2.dnn.readNet(model_weights, model_config)
+    return net
+
+def detect_objects(image_path, net):
+    '''Detects objects in an image using the given YOLO net
+    args:
+        image_path: path to image
+        net: YOLO net
+
+    returns: list of [image_path, class_id, top_x, top_y, bottom_x, bottom_y, confidence]
+    '''
+    # Load image and get its dimensions
+    image = cv2.imread(image_path)
+    height, width = image.shape[:2]
+    # Create a blob from the image and perform a forward pass
+    blob = cv2.dnn.blobFromImage(image, 1/255.0, (416, 416), swapRB=True, crop=False)
+    net.setInput(blob)
+    output_layers = net.getUnconnectedOutLayersNames()
+    detections = net.forward(output_layers)
+    # Process the detections
+    results = []
+    for detection in detections:
+        for obj in detection:
+            scores = obj[5:]
+            class_id = np.argmax(scores)
+            confidence = scores[class_id]
+            if confidence > 0.5:  # Adjust confidence threshold as needed
+                center_x = int(obj[0] * width)
+                center_y = int(obj[1] * height)
+                box_width = int(obj[2] * width)
+                box_height = int(obj[3] * height)
+                top_x, top_y, bottom_x, bottom_y = convert_yolo_to_voc(center_x, center_y, box_width, box_height)
+                results.append([
+                    image_path,
+                    class_id,
+                    top_x,
+                    top_y,
+                    bottom_x,
+                    bottom_y,
+                    confidence
+                ])
+    return results
+
+def test_folder_cv2_DNN(folder_path, net):
+    # Specify the image file path
+    image_paths = glob.glob(folder_path + "/*.jpg")
+
+    # Perform object detection
+    detections = []
+    for image_path in tqdm.tqdm(image_paths, desc="Detecting objects"):
+        detections += detect_objects(image_path, net)
+    file = open("result.txt", "w")
+    # Print the results
+    for detection in detections:
+        image_name, class_id, top_x, top_y, bottom_x, bottom_y, confidence = detection
+        file.write(str(image_name) + ' ' + str(class_id) + ' ' + str(top_x) + ' ' + str(top_y) + ' ' + str(bottom_x) + ' ' + str(bottom_y) + ' ' + str(confidence) + '\n')
+    file.close()    
 
 def train_easy(obj_data="/home/as-hunt/Etra-Space/white-thirds/obj.data", cfg="/home/as-hunt/Etra-Space/white-thirds/yolov4.cfg", model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show"):
     '''Trains a model with the given parameters
@@ -17,7 +80,7 @@ def train_easy(obj_data="/home/as-hunt/Etra-Space/white-thirds/obj.data", cfg="/
     '''
     os.system("darknet detector train " + obj_data + ' ' + cfg + ' ' + model + ' ' + args )
 
-def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000, model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show"):
+def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000, model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show", test=False):
     '''Trains a model with the given parameters
     dir: path to directory containing obj.data, cfg, and test folder
     upper_range: number of epochs to train for
@@ -64,24 +127,21 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
         subprocess.run(['mv', backup + version + '_final.weights', backup + version + '_' + str(epoch) + '.weights'])
         new_weights = backup + version + '_' + str(epoch) + ".weights"
         # print('tack')
-        os.system("darknet detector test " + obj_data + " " + cfg_10 + " " + new_weights + " -dont_show -ext_output < " + test_file + " > " + temp_file + " 2>&1")
-        # print('tick-1')
-        import_results_neo(temp_file, temp + 'results_' + str(epoch) + '.txt', names)
-        # print('tack-1')
-        F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(epoch) + '.txt', 'export_' + str(epoch), temp, False, names, False)
-        # print('tick-2')
-        li.append([epoch, F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro])
-        # print('tack-2')
-        os.system("rm " + temp + "results_" + str(epoch) + ".txt")
-        # print('tock')
+        if test == True:
+            os.system("darknet detector test " + obj_data + " " + cfg_10 + " " + new_weights + " -dont_show -ext_output < " + test_file + " > " + temp_file + " 2>&1")
+            import_results_neo(temp_file, temp + 'results_' + str(epoch) + '.txt', names)
+            F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(epoch) + '.txt', 'export_' + str(epoch), temp, False, names, False)
+            li.append([epoch, F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro])
+            os.system("rm " + temp + "results_" + str(epoch) + ".txt")
         if (epoch-10) % 50 == 0:
             pass
         else:
             subprocess.run(['rm', backup + version + str(epoch - 10) + '.weights'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             subprocess.run(['rm', backup + 'chart_' + version + str(epoch) + '.png'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    df = pd.DataFrame(li, columns = ['Epoch', 'F1_score_weighted', 'F1_score_macro', 'Accuracy', 'Precision_score_weighted', 'Precision_score_macro', 'Recall_score_weighted', 'Recall_score_macro', 'Fbeta05_score_weighted', 'Fbeta05_score_macro', 'Fbeta2_score_weighted', 'Fbeta2_score_macro'])
     print("Training complete. Epochs: " + str(epoch))
-    pd.DataFrame(df).to_csv(dir + 'output.csv', index=False)
+    if test == True:                
+        df = pd.DataFrame(li, columns = ['Epoch', 'F1_score_weighted', 'F1_score_macro', 'Accuracy', 'Precision_score_weighted', 'Precision_score_macro', 'Recall_score_weighted', 'Recall_score_macro', 'Fbeta05_score_weighted', 'Fbeta05_score_macro', 'Fbeta2_score_weighted', 'Fbeta2_score_macro'])
+        pd.DataFrame(df).to_csv(dir + 'output.csv', index=False)
 
 def get_info(data_path, model_path, model_name, sava_annotations=False):
     data_path = check_full_path(data_path)
@@ -185,9 +245,10 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
     os.remove(temp_path + 'result.txt')
 
 
-def test_fancy(path, outpout_name):
+def test_fancy(path, outpout_name, choose_wights = True, weights = "/home/as-hunt/Etra-Space/cfg/yolov4.conv.137"):
     path = check_full_path(path)
-    weights = choose_weights(path)
+    if choose_wights == True:
+        weights = choose_weights(path)
     cfg = choose_cfg(path)
     data = path + 'obj.data'
     names = path + 'obj.names'
@@ -201,5 +262,81 @@ def test_fancy(path, outpout_name):
     make_ground_truth(temp_path + 'gt.txt', path + 'test/')
     import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
     check_all_annotations_for_duplicates(temp_path + 'results.txt')
-    plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, names)
+    try:
+        plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, names)
+    except:
+        pass
     do_math(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, True, names, True)
+
+def train_5_fold_validation(folder_with_all_data, save_path, upper_range=10000, model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show", test=False):
+    folder_with_all_data = check_full_path(folder_with_all_data)
+    save_path = check_full_path(save_path)
+    split_to_X_folders(folder_with_all_data, folder_with_all_data, 5)
+    prepare_cfg_v4(folder_with_all_data+ '/classes.txt', save_path, 10)
+    for i in range(1, 6, 1):
+        print(i)
+        try:
+            os.mkdir(save_path + str(i))
+        except: 
+            pass    
+        if i == 1:
+            n1, n2, n3, n4, n5 = 1, 2, 3, 4, 5
+        elif i == 2:
+            n1, n2, n3, n4, n5 = 2, 3, 4, 5, 1
+        elif i == 3:
+            n1, n2, n3, n4, n5 = 3, 4, 5, 1, 2
+        elif i == 4:
+            n1, n2, n3, n4, n5 = 4, 5, 1, 2, 3
+        elif i == 5:
+            n1, n2, n3, n4, n5 = 5, 1, 2, 3, 4
+        print(folder_with_all_data + f'f{n1}')
+        combine_three_folders(folder_with_all_data, save_path + f'{n1}/train/', n1, n2, n3)
+        shutil.copytree(folder_with_all_data + f'f{n4}/', save_path + f'{n1}/valid/', dirs_exist_ok=True)
+        shutil.copytree(folder_with_all_data + f'f{n5}/', save_path + f'{n1}/test/', dirs_exist_ok=True)
+        shutil.copy(save_path + f'{n1}/train/classes.txt', save_path + f'{n1}/obj.names')    
+        if os.path.exists(save_path+ f'{n1}/train/') == True:
+            remove_non_annotated(save_path + f'{n1}/train/')
+            prep(save_path + f'{n1}/train/', 'train.txt')
+        if os.path.exists(save_path+f'{n1}/test/') == True:
+            remove_non_annotated(save_path + f'{n1}/test/')
+            prep(save_path + f'{n1}/test/', 'test.txt')
+        if os.path.exists(save_path+ f'{n1}/valid/') == True:
+            remove_non_annotated(save_path + f'{n1}/valid/')
+            prep(save_path + f'{n1}/valid/', 'valid.txt')
+        make_obj_data(save_path+f'{n1}/', False)
+        shutil.copy(save_path + 'yolov4_10.cfg', save_path + f'{n1}/yolov4_10_pass_{n1}.cfg')
+        train_fancy(save_path + f'{n1}/', upper_range, model, args, test)
+
+def test_5_fold_validation(work_dir, save_name, epochs=250):
+    # folder = choose_folder(work_dir)
+    folder = check_full_path(work_dir)
+    for i in range(1, 6, 1):
+        test_fancy(folder + f'/{i}/', save_name + f'_{i}', False, folder + f'/{i}/backup/yolov4_10_pass_{i}_{epochs}.weights')
+
+def cv2_test_fancy(path, outpout_name, choose_wights = True, weights = "/home/as-hunt/Etra-Space/cfg/yolov4.conv.137"):
+    path = check_full_path(path)
+    if choose_wights == True:
+        weights = choose_weights(path)
+    cfg = choose_cfg(path)
+    names = path + 'obj.names'
+    test_dir = path + 'test/'
+    temp_path = path + 'temp/'
+    if os.path.exists(temp_path) == True:
+        pass
+    else:
+        os.mkdir(temp_path)
+    net = cv2_load_net(weights, cfg)
+    test_folder_cv2_DNN(test_dir, net)
+    make_ground_truth(temp_path + 'gt.txt', test_dir)
+    import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
+    check_all_annotations_for_duplicates(temp_path + 'results.txt')
+    try:
+        plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, names)
+    except:
+        pass
+    do_math(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, True, names, True)
+
+def test_5_fold_validation_cv2(work_dir, save_name, epochs=250):
+    folder = check_full_path(work_dir)
+    for i in range(1, 6, 1):
+        cv2_test_fancy(folder + f'{i}/', save_name + f'_{i}', False, folder + f'{i}/backup/yolov4_10_pass_{i}_{epochs}.weights')
