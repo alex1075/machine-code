@@ -168,7 +168,7 @@ def prepare_training(url, path):
     if os.path.exists(path+'valid/') == True:
         remove_non_annotated(path + 'valid/')
         prep(path + 'valid/', 'valid.txt')
-    select_yolo_version(path + 'obj.names', path, 10)
+    select_yolo_version(path + 'obj.names', path, 10, 'yolov4_10')
     make_obj_data(path, False)
     
 def get_file_remote(name, ssh):
@@ -265,20 +265,15 @@ def choose_cfg(path):
     for d in os.listdir(path):
         if d.endswith('.cfg') == True:
             array.append(path + d)
-    array.append('Other')        
-    question = [inquirer.List('weights',
-                            message="Which AI model weights do you want to use?",
-                            choices=array,
-                        ),]
-    answer = inquirer.prompt(question)
-    if len(answer['weights']) == 1:
-        return answer['weights'][0]
-    if answer['weights'] == 'Other':
-        cfg = input('Enter path to cfg file: ')
-        return cfg
+    if len(array) == 1:
+        return array[0]
     else:
-        return answer['weights']
-    
+        question = [inquirer.List('cfg',
+                                message="Which AI model cfg do you want to use?",
+                                choices=array,
+                            ),]
+        answer = inquirer.prompt(question)
+        return answer['cfg']    
 
 def cat_file(file):
     os.system('cat ' + file)

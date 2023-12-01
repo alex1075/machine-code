@@ -26,16 +26,18 @@ def rotate_90_degrees(path, image, annot=False):
         annot = open(path + image[:-4] + '.txt', 'r')
         annot_lines = annot.readlines()
         annot.close()
-        annot = open(path + image[:-4] +' _90_deg_rotation' + '.txt', 'w')
+        annot = open(path + image[:-4] +'_90_deg_rotation' + '.txt', 'w')
         for line in annot_lines:
+            line = line.strip('\n')
             line = line.split(' ')
-            clas = line[0]
-            x_center = line[1]
-            y_center = line[2]
-            width = line[3]
-            height = line[4]
+            clas = line[0].strip('\n')
+            x_center = line[1].strip('\n')
+            y_center = line[2].strip('\n')
+            width = line[3].strip('\n')
+            height = line[4].strip('\n')
             x_center, y_center, width, height = rotate_90_annotation(x_center, y_center, width, height)
-            new_line = clas + ' ' + str(x_center) + ' ' + str(y_center) + ' ' + str(width) + ' ' + str(height) + '\n'
+            # new_line = clas + ' ' + str(x_center) + ' ' + str(y_center) + ' ' + str(width) + ' ' + str(height) + '\n'
+            new_line = f'{clas} {x_center} {y_center} {width} {height} \n'
             annot.write(new_line)
         annot.close()
 
@@ -47,16 +49,18 @@ def rotate_180_degrees(path, image, annot=False):
         annot = open(path + image[:-4] + '.txt', 'r')
         annot_lines = annot.readlines()
         annot.close()
-        annot = open(path + image[:-4] +' _180_deg_rotation' + '.txt', 'w')
+        annot = open(path + image[:-4] +'_180_deg_rotation' + '.txt', 'w')
         for line in annot_lines:
+            line = line.strip('\n')
             line = line.split(' ')
-            clas = line[0]
-            x_center = line[1]
-            y_center = line[2]
-            width = line[3]
-            height = line[4]
+            clas = line[0].strip('\n')
+            x_center = line[1].strip('\n')
+            y_center = line[2].strip('\n')
+            width = line[3].strip('\n')
+            height = line[4].strip('\n')
             x_center, y_center, width, height = rotate_180_annotation(x_center, y_center, width, height)
-            new_line = clas + ' ' + str(x_center) + ' ' + str(y_center) + ' ' + str(width) + ' ' + str(height) + '\n'
+            # new_line = clas + ' ' + str(x_center) + ' ' + str(y_center) + ' ' + str(width) + ' ' + str(height) + '\n'
+            new_line = f'{clas} {x_center} {y_center} {width} {height} \n'
             annot.write(new_line)
         annot.close()
 
@@ -68,16 +72,17 @@ def rotate_270_degrees(path, image, annot=False):
         annot = open(path + image[:-4] + '.txt', 'r')
         annot_lines = annot.readlines()
         annot.close()
-        annot = open(path + image[:-4] +' _270_deg_rotation' + '.txt', 'w')
+        annot = open(path + image[:-4] +'_270_deg_rotation' + '.txt', 'w')
         for line in annot_lines:
+            line = line.strip('\n')
             line = line.split(' ')
-            clas = line[0]
-            x_center = line[1]
-            y_center = line[2]
-            width = line[3]
-            height = line[4]
+            clas = line[0].strip('\n')
+            x_center = line[1].strip('\n')
+            y_center = line[2].strip('\n')
+            width = line[3].strip('\n')
+            height = line[4].strip('\n')
             x_center, y_center, width, height = rotate_270_annotation(x_center, y_center, width, height)
-            new_line = clas + ' ' + str(x_center) + ' ' + str(y_center) + ' ' + str(width) + ' ' + str(height) + '\n'
+            new_line = f'{clas} {x_center} {y_center} {width} {height} \n'
             annot.write(new_line)
         annot.close()
 

@@ -541,7 +541,7 @@ def rotate_boxes90(boxes):
     old_center_y = boxes[1] 
     old_width = boxes[2]
     old_height = boxes[3]
-    new_center_x = 1.0 - float(old_center_y)
+    new_center_x = round(1.0 - float(old_center_y), 6)
     new_center_y = old_center_x
     new_width = old_height
     new_height = old_width
@@ -553,8 +553,8 @@ def rotate_boxes180(boxes):
     old_center_y = boxes[1] 
     old_width = boxes[2]
     old_height = boxes[3]
-    new_center_x = 1.0 - float(old_center_x)
-    new_center_y = 1.0 - float(old_center_x)
+    new_center_x = round(1.0 - float(old_center_x), 6)
+    new_center_y = round(1.0 - float(old_center_x), 6)
     new_width = old_width
     new_height = old_height
     return [new_center_x, new_center_y, new_width, new_height]
@@ -566,7 +566,7 @@ def rotate_boxes270(boxes):
     old_width = boxes[2]
     old_height = boxes[3]
     new_center_x = old_center_y
-    new_center_y = 1.0 - float(old_center_x)
+    new_center_y = round(1.0 - float(old_center_x), 6)
     new_width = old_height
     new_height = old_width
     return [new_center_x, new_center_y, new_width, new_height]

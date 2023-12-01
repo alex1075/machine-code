@@ -4,6 +4,7 @@ import tqdm
 import subprocess
 import shutil
 import warnings
+import threading
 import pandas as pd
 from code.helper.annotations import *
 from code.helper.reports import *
@@ -16,7 +17,7 @@ def cv2_load_net(model_weights, model_config):
     net = cv2.dnn.readNet(model_weights, model_config)
     return net
 
-def detect_objects(image_path, net):
+def detect_objects(image_path, net, classes):
     '''Detects objects in an image using the given YOLO net
     args:
         image_path: path to image
@@ -32,6 +33,8 @@ def detect_objects(image_path, net):
     net.setInput(blob)
     output_layers = net.getUnconnectedOutLayersNames()
     detections = net.forward(output_layers)
+    image_name = os.path.basename(image_path)
+    image_name = image_name[:-4]
     # Process the detections
     results = []
     for detection in detections:
@@ -46,7 +49,7 @@ def detect_objects(image_path, net):
                 box_height = int(obj[3] * height)
                 top_x, top_y, bottom_x, bottom_y = convert_yolo_to_voc(center_x, center_y, box_width, box_height)
                 results.append([
-                    image_path,
+                    image_name,
                     class_id,
                     top_x,
                     top_y,
@@ -56,15 +59,15 @@ def detect_objects(image_path, net):
                 ])
     return results
 
-def test_folder_cv2_DNN(folder_path, net):
+def test_folder_cv2_DNN(folder_path, net, file_name, classes):
     # Specify the image file path
     image_paths = glob.glob(folder_path + "/*.jpg")
 
     # Perform object detection
     detections = []
     for image_path in tqdm.tqdm(image_paths, desc="Detecting objects"):
-        detections += detect_objects(image_path, net)
-    file = open("result.txt", "w")
+        detections += detect_objects(image_path, net, classes)
+    file = open(file_name, "w")
     # Print the results
     for detection in detections:
         image_name, class_id, top_x, top_y, bottom_x, bottom_y, confidence = detection
@@ -325,18 +328,44 @@ def cv2_test_fancy(path, outpout_name, choose_wights = True, weights = "/home/as
         pass
     else:
         os.mkdir(temp_path)
+    with open(names, "r") as f:
+        classes = [line.strip() for line in f]    
     net = cv2_load_net(weights, cfg)
-    test_folder_cv2_DNN(test_dir, net)
+    test_folder_cv2_DNN(test_dir, net, temp_path + 'results.txt', classes)
     make_ground_truth(temp_path + 'gt.txt', test_dir)
-    import_and_filter_result_neo(temp_path + 'result.txt', temp_path + 'results.txt', names)
-    check_all_annotations_for_duplicates(temp_path + 'results.txt')
-    try:
-        plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, names)
-    except:
-        pass
+    # check_all_annotations_for_duplicates(temp_path + 'results.txt')
+    tick = time.time()
+    plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, names)
+    tack = time.time()
     do_math(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, True, names, True)
+    tock = time.time()
+    print('Plotting: ' + str(tack - tick))
+    print('Math: ' + str(tock - tack))
+    
 
 def test_5_fold_validation_cv2(work_dir, save_name, epochs=250):
     folder = check_full_path(work_dir)
     for i in range(1, 6, 1):
         cv2_test_fancy(folder + f'{i}/', save_name + f'_{i}', False, folder + f'{i}/backup/yolov4_10_pass_{i}_{epochs}.weights')
+
+def multithread_test_5_fold_validation_cv2(work_dir, save_name, epochs=250):
+    folder = check_full_path(work_dir)
+    thread_list = []
+    proc = os.cpu_count() - 1
+    for i in range(1, 6, 1):
+        thread = threading.Thread(target=cv2_test_fancy, args=(folder + f'{i}/', save_name + f'_{i}', False, folder + f'{i}/backup/yolov4_10_pass_{i}_{epochs}.weights'))
+        thread_list.append(thread)
+    while len(thread_list) > 0:
+        for i in range(proc):
+            try:
+                thread_list[i].start()
+                print('Started thread ' + str(i))
+            except:
+                pass
+        for i in range(proc):
+            try:
+                thread_list[i].join()
+                print('Joined thread ' + str(i))
+            except:
+                pass
+        thread_list = thread_list[proc:]    

@@ -136,20 +136,39 @@ def main(docker=False):
         clear()
         beta_banner()
         # print('No functions to test.')
-        path1 = '/home/as-hunt/prob-mon/'
-        path2 = '/home/as-hunt/test/'
-        train_5_fold_validation(path1, path2)
+        path1 = '/home/as-hunt/Etra-Space/LEUKOPHA/'
+        output_name = 'Leuko PHA'    
+        path = check_full_path(path1)
+        multithread_test_5_fold_validation_cv2(path, output_name)  
     elif a['selection'] == 'Test a model':
         clear()
         test_banner()
+        cv2q = yes_no_question('Do you want to use OpenCV for the test?')
         output_name = input('Enter the name of the output files: ')
         if docker == False:
             path = choose_folder('/home/as-hunt/Etra-Space/')
         elif docker == True:    
             path = choose_folder('/media/')
-        test_fancy(path + '/', output_name)
+        if cv2q == 'y':
+            cv2_test_fancy(path + '/', output_name)    
+        else:
+            test_fancy(path + '/', output_name)
     elif a['selection'] == 'Dataset augmentation':
-        print('..... crickets .....')
+        clear()
+        qq = yes_no_question('Is the origin folder in Etra-Space?')
+        if qq == 'y':
+            path = '/home/as-hunt/Etra-Space/'
+            path1 = choose_folder(path)
+        else:
+            path = '/home/as-hunt/'
+            path1 = choose_folder(path)
+        q1 = yes_no_question('Is the data annotated?')
+        if q1 == 'y':
+            annot = True
+        else:
+            annot = False
+        augments = choose_augmentations()
+        iterate_augment(path1, augments, annot)    
     elif a['selection'] == 'Train with five fold validation':
         clear()
         qq = yes_no_question('Is the origin folder in Etra-Space?')
