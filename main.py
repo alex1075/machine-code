@@ -209,9 +209,10 @@ def main(docker=False):
             path1 = choose_folder(path)
         else:
             path = '/home/as-hunt/'
-            path1 = choose_folder(path)
+            path1 = choose_folder(path)           
         output_name = input('Enter the name of the output files: ')    
         path = check_full_path(path1)
+        epochs = choose_epochs()
         if cv2q == 'y':
             test_5_fold_validation_cv2(path, output_name)
         elif cv2q == 'n':

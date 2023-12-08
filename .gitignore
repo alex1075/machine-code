@@ -33,3 +33,7 @@ C*/
 K*/
 test*/
 *.137
+dist/
+build/
+*.spec
+

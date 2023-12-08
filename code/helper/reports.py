@@ -672,6 +672,12 @@ def plot_bbox_area_polars(gt_file, pd_file, save_name='areas', path='/home/as-hu
             target_names.append('Monocyte-Activated')
         elif item == 'NEU-A':
             target_names.append('Neutrophil-Activated')
+        elif item == 'LYMA':
+            target_names.append('Lymphocyte-Activated')
+        elif item == 'MONA':
+            target_names.append('Monocyte-Activated')
+        elif item == 'NEUA':
+            target_names.append('Neutrophil-Activated')   
     target_names.sort()     
     listed = open(pd_file, 'r')
     losted = open(gt_file, 'r')
@@ -809,6 +815,12 @@ def do_math_polars(gt_file, pd_file, title, path, save_txt=False, obj_name='/hom
             target_names.append('Monocyte-Activated')
         elif item == 'NEU-A':
             target_names.append('Neutrophil-Activated')
+        elif item == 'LYMA':
+            target_names.append('Lymphocyte-Activated')
+        elif item == 'MONA':
+            target_names.append('Monocyte-Activated')
+        elif item == 'NEUA':
+            target_names.append('Neutrophil-Activated')            
     target_names.sort()        
     # print('tock')
     for line in pud:
