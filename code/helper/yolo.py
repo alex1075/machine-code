@@ -10,7 +10,7 @@ from code.helper.annotations import *
 from code.helper.reports import *
 from code.helper.utils import *
 from code.helper.data import *
-
+from multiprocessing import Process
 
 def cv2_load_net(model_weights, model_config):
     # Load the pre-trained YOLO model and corresponding classes
@@ -124,23 +124,24 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     print("Initiating training for " + str(upper_range) + " epochs")
     print("Using starting weights: " + new_weights)
     for i in tqdm.tqdm(range(0, upper_range, 10), desc="Training", unit="epochs"):
-        # print('tick')
         os.system("darknet detector train " + obj_data + ' ' + cfg_10 + ' ' + new_weights + ' ' + args + '> /dev/null 2>&1')
-        epoch = i + 10
+        # if epoch is mutilple of 100
+        if epoch % 100 == 0:
+            for i in range(1, 10 ,1):
+                i = i * 10
+                for file in os.listdir(backup):
+                    if file.endswith(f"{i}.weights"):
+                            os.system('rm ' + backup + file)
+        epoch += 10
         subprocess.run(['mv', backup + version + '_final.weights', backup + version + '_' + str(epoch) + '.weights'])
         new_weights = backup + version + '_' + str(epoch) + ".weights"
-        # print('tack')
         if test == True:
             os.system("darknet detector test " + obj_data + " " + cfg_10 + " " + new_weights + " -dont_show -ext_output < " + test_file + " > " + temp_file + " 2>&1")
             import_results_neo(temp_file, temp + 'results_' + str(epoch) + '.txt', names)
             F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(epoch) + '.txt', 'export_' + str(epoch), temp, False, names, False)
             li.append([epoch, F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro])
             os.system("rm " + temp + "results_" + str(epoch) + ".txt")
-        if (epoch-10) % 50 == 0:
-            pass
-        else:
-            subprocess.run(['rm', backup + version + str(epoch - 10) + '.weights'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(['rm', backup + 'chart_' + version + str(epoch) + '.png'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(['rm', backup + 'chart_' + version + str(epoch) + '.png'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     print("Training complete. Epochs: " + str(epoch))
     if test == True:                
         df = pd.DataFrame(li, columns = ['Epoch', 'F1_score_weighted', 'F1_score_macro', 'Accuracy', 'Precision_score_weighted', 'Precision_score_macro', 'Recall_score_weighted', 'Recall_score_macro', 'Fbeta05_score_weighted', 'Fbeta05_score_macro', 'Fbeta2_score_weighted', 'Fbeta2_score_macro'])
@@ -369,3 +370,13 @@ def multithread_test_5_fold_validation_cv2(work_dir, save_name, epochs=250):
             except:
                 pass
         thread_list = thread_list[proc:]    
+
+def multiprocess_test_5_fold_valdiation_cv2(workdir, save_name, epochs):
+    folder = check_full_path(workdir)
+    proc = os.cpu_count() - 1
+    process_list = []
+    for i in range(1,6,1):
+        p = Process(target=cv2_test_fancy, args=(folder + f'{i}/', save_name + f'_{i}', False, folder + f'{i}/backup/yolov4_10_pass_{i}_{epochs}.weights'))
+        process_list.append(p)
+    [process.start() for process in process_list]
+    [process.join() for process in process_list]

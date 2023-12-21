@@ -135,11 +135,17 @@ def main(docker=False):
     elif a['selection'] == 'Beta test a function':
         clear()
         beta_banner()
-        # print('No functions to test.')
-        path1 = '/home/as-hunt/Etra-Space/LEUKOPHA/'
-        output_name = 'Leuko PHA'    
+        qq = yes_no_question('Is the origin folder in Etra-Space?')
+        if qq == 'y':
+            path = '/home/as-hunt/Etra-Space/'
+            path1 = choose_folder(path)
+        else:
+            path = '/home/as-hunt/'
+            path1 = choose_folder(path)           
+        output_name = input('Enter the name of the output files: ')    
         path = check_full_path(path1)
-        multithread_test_5_fold_validation_cv2(path, output_name)  
+        epochs = choose_epochs()
+        multiprocess_test_5_fold_valdiation_cv2(path, output_name, epochs)
     elif a['selection'] == 'Test a model':
         clear()
         test_banner()
@@ -214,9 +220,9 @@ def main(docker=False):
         path = check_full_path(path1)
         epochs = choose_epochs()
         if cv2q == 'y':
-            test_5_fold_validation_cv2(path, output_name)
+            test_5_fold_validation_cv2(path, output_name, epochs)
         elif cv2q == 'n':
-            test_5_fold_validation(path, output_name)                    
+            test_5_fold_validation(path, output_name, epochs)                    
     else:
         print('Invalid selection')
         time.sleep(2)
