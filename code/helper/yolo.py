@@ -380,3 +380,30 @@ def multiprocess_test_5_fold_valdiation_cv2(workdir, save_name, epochs):
         process_list.append(p)
     [process.start() for process in process_list]
     [process.join() for process in process_list]
+
+def test_training_epochs(work_dir, save_name):
+    folder = check_full_path(work_dir)
+    backup = folder + 'backup/'
+    cfg = choose_cfg(folder)
+    obj_data = folder + 'obj.data'
+    temp = folder + 'temp/'
+    if os.path.exists(temp) == True:
+        pass
+    else:
+        os.mkdir(temp)
+    names = folder + 'obj.names'
+    test_weights = []
+    li = []
+    test_dir = folder + "test/"
+    for file in os.listdir(backup):
+        if file.endswith(".weights"):
+            test_weights.append(file)
+    for file in test_weights:
+            name = file.split('_')[-1][:-8]
+            net = cv2_load_net(backup + file, cfg)
+            test_folder_cv2_DNN(test_dir, net, temp + 'results.txt', names)
+            F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(name) + '.txt', 'export_' + str(name), temp, False, names, False)
+            li.append([name, F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro])
+    df = pd.DataFrame(li, columns = ['Epoch', 'F1_score_weighted', 'F1_score_macro', 'Accuracy', 'Precision_score_weighted', 'Precision_score_macro', 'Recall_score_weighted', 'Recall_score_macro', 'Fbeta05_score_weighted', 'Fbeta05_score_macro', 'Fbeta2_score_weighted', 'Fbeta2_score_macro'])
+    pd.DataFrame(df).to_csv(folder + 'output.csv', index=False)
+    make_training_graphs(folder + 'output.csv', folder)    

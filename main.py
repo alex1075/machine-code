@@ -24,11 +24,12 @@ def main(docker=False):
         path = '/media'
     if docker == False:
         choice = ['Convert multimedia data to JPEG images', 'Prepare a dataset for training', 'Dataset augmentation', 
-                                    'Train a model', 'Test a model', 'Infer a model on biological data', 'Copy data over', 
+                                    'Train a model', 'Test a model', 'Get training info', 'Infer a model on biological data', 'Copy data over', 
                                     'Train with five fold validation', 'Test 5 fold validation', 'Beta test a function', 'Exit']
     elif docker == True:
         choice = ['Convert multimedia data to JPEG images', 'Prepare a dataset for training', 'Dataset augmentation', 
-                                    'Train a model', 'Test a model', 'Infer a model on biological data', 'Exit']
+                                    'Train a model', 'Test a model', 'Get training info', 'Infer a model on biological data',
+                                    'Train with five fold validation', 'Test 5 fold validation', 'Exit']
     question = [inquirer.List('selection',
                            message="Main machine interface, what do you wish to do?",
                            choices=choice,
@@ -193,9 +194,9 @@ def main(docker=False):
         else:
                 weights = input('Remember to have the files mounted in /media. Enter the path to the weights: ')
         weights = check_full_path(weights)
-        a_choice = yes_no_question('Do you want to use the default arguments? -mjpeg_port 8090 -clear -dont_show')
+        a_choice = yes_no_question('Do you want to use the default arguments? -mjpeg_port 8090 -dont_show')
         if a_choice == 'y':
-            argus = ' -mjpeg_port 8090 -clear -dont_show'
+            argus = ' -mjpeg_port 8090 -dont_show'
         else:
             argus = input('Enter the arguments: ')
         epochs = choose_epochs()
@@ -222,7 +223,13 @@ def main(docker=False):
         if cv2q == 'y':
             test_5_fold_validation_cv2(path, output_name, epochs)
         elif cv2q == 'n':
-            test_5_fold_validation(path, output_name, epochs)                    
+            test_5_fold_validation(path, output_name, epochs)        
+    elif a['selection'] == 'Get training info':
+        clear()
+        path = input('Enter the path to the data: (remember to end with a /)')
+        output_name = input('Enter the name of the output files: ')    
+        path = check_full_path(path)
+        test_training_epochs(path, output_name)                    
     else:
         print('Invalid selection')
         time.sleep(2)
