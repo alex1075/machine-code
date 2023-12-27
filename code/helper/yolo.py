@@ -48,15 +48,35 @@ def detect_objects(image_path, net, classes):
                 box_width = int(obj[2] * width)
                 box_height = int(obj[3] * height)
                 top_x, top_y, bottom_x, bottom_y = convert_yolo_to_voc(center_x, center_y, box_width, box_height)
-                results.append([
-                    image_name,
-                    class_id,
-                    top_x,
-                    top_y,
-                    bottom_x,
-                    bottom_y,
-                    confidence
-                ])
+                if top_x <= 6:
+                    pass
+                elif top_x >= 410:
+                    pass
+                else:
+                    if top_y <= 6:
+                        pass
+                    elif top_y >= 410:
+                        pass
+                    else:
+                        if bottom_x <= 6:
+                            pass
+                        elif bottom_x >= 410:
+                            pass
+                        else:
+                            if bottom_y <= 6:
+                                pass
+                            elif bottom_y >= 410:
+                                pass
+                            else:
+                                results.append([
+                                    image_name,
+                                    class_id,
+                                    top_x,
+                                    top_y,
+                                    bottom_x,
+                                    bottom_y,
+                                    confidence
+                                ])
     return results
 
 def test_folder_cv2_DNN(folder_path, net, file_name, classes):
@@ -73,6 +93,7 @@ def test_folder_cv2_DNN(folder_path, net, file_name, classes):
         image_name, class_id, top_x, top_y, bottom_x, bottom_y, confidence = detection
         file.write(str(image_name) + ' ' + str(class_id) + ' ' + str(top_x) + ' ' + str(top_y) + ' ' + str(bottom_x) + ' ' + str(bottom_y) + ' ' + str(confidence) + '\n')
     file.close()    
+    os.system("sed -i \'/^$/d\' " + file_name)
 
 def train_easy(obj_data="/home/as-hunt/Etra-Space/white-thirds/obj.data", cfg="/home/as-hunt/Etra-Space/white-thirds/yolov4.cfg", model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show"):
     '''Trains a model with the given parameters
@@ -334,7 +355,7 @@ def cv2_test_fancy(path, outpout_name, choose_wights = True, weights = "/home/as
     net = cv2_load_net(weights, cfg)
     test_folder_cv2_DNN(test_dir, net, temp_path + 'results.txt', classes)
     make_ground_truth(temp_path + 'gt.txt', test_dir)
-    # check_all_annotations_for_duplicates(temp_path + 'results.txt')
+    check_all_annotations_for_duplicates(temp_path + 'results.txt')
     tick = time.time()
     plot_bbox_area(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, names)
     tack = time.time()
@@ -380,3 +401,30 @@ def multiprocess_test_5_fold_valdiation_cv2(workdir, save_name, epochs):
         process_list.append(p)
     [process.start() for process in process_list]
     [process.join() for process in process_list]
+
+def test_training_epochs(work_dir, save_name):
+    folder = check_full_path(work_dir)
+    backup = folder + 'backup/'
+    cfg = choose_cfg(folder)
+    obj_data = folder + 'obj.data'
+    temp = folder + 'temp/'
+    if os.path.exists(temp) == True:
+        pass
+    else:
+        os.mkdir(temp)
+    names = folder + 'obj.names'
+    test_weights = []
+    li = []
+    test_dir = folder + "test/"
+    for file in os.listdir(backup):
+        if file.endswith(".weights"):
+            test_weights.append(file)
+    for file in test_weights:
+            name = file.split('_')[-1][:-8]
+            net = cv2_load_net(backup + file, cfg)
+            test_folder_cv2_DNN(test_dir, net, temp + 'results.txt', names)
+            F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro, = do_math(temp + 'gt.txt', temp + 'results_' + str(name) + '.txt', 'export_' + str(name), temp, False, names, False)
+            li.append([name, F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro])
+    df = pd.DataFrame(li, columns = ['Epoch', 'F1_score_weighted', 'F1_score_macro', 'Accuracy', 'Precision_score_weighted', 'Precision_score_macro', 'Recall_score_weighted', 'Recall_score_macro', 'Fbeta05_score_weighted', 'Fbeta05_score_macro', 'Fbeta2_score_weighted', 'Fbeta2_score_macro'])
+    pd.DataFrame(df).to_csv(folder + 'output.csv', index=False)
+    make_training_graphs(folder + 'output.csv', folder)    

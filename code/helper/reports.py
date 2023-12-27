@@ -9,6 +9,9 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 from sklearn.metrics import classification_report, accuracy_score, f1_score, precision_score, recall_score, fbeta_score
 import matplotlib.pyplot as plt
 from code.helper.annotations import *
+from code.helper.utils import *
+import multiprocessing
+from functools import partial
 
 def count_classes_file(test_file='/home/as-hunt/Etra-Space/new_data_sidless/gt.txt', chart=False, chart_name='chart.png', labs=['1', '2', '3']):
     class_1 = 0
@@ -60,6 +63,7 @@ def count_classes_file(test_file='/home/as-hunt/Etra-Space/new_data_sidless/gt.t
             ax.pie(count, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
         plt.savefig(chart_name, bbox_inches='tight')    
 
+@timing
 def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/', obj_name='/home/as-hunt/Etra-Space/white-thirds/obj.names'):
     '''Plots the areas of the bounding boxes in the ground truth and prediction from txt summary files'''
     names = []
@@ -113,20 +117,29 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/', o
     target_names.sort()     
     listed = open(pd_file, 'r')
     losted = open(gt_file, 'r')
+    print('Plotting areas.')
     for line in listed:
-        li = line.split(' ')
-        name = li[0]
-        classes = li[1]
-        bbox = [int(li[2]), int(li[3]), int(li[4]), int(li[5])]
-        confidence = li[6]
-        pd_array.append([name, bbox, target_names[int(classes)], confidence])
+        if line == '' or line == '\n' or line == ' \n':
+            pass
+        else:
+            li = line.split(' ')
+            try:
+                name = li[0]
+                classes = li[1]
+                bbox = [int(li[2]), int(li[3]), int(li[4]), int(li[5])]
+                confidence = li[6]
+                pd_array.append([name, bbox, target_names[int(classes)], confidence])
+            except:
+                print(li)
+                raise Exception('Error in plotting areas. Check the format of the prediction file.')
+
     for lune in losted:
         lu = lune.split(' ')
         nome = lu[0]
         clisses = lu[1]
         bbax = [int(lu[2]), int(lu[3]), int(lu[4]), int(lu[5])]
         gt_array.append([nome, bbax, target_names[int(clisses)]])
-    for item in pd_array:
+    for item in tqdm.tqdm(pd_array, unit='pd bbox'):
         name = item[0]
         bbox = item[1]
         classes = item[2]
@@ -388,13 +401,16 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
     target_names.sort()        
     # print('tock')
     for line in pud:
-        li = line.split(' ')
-        name = li[0]
-        classes = li[1]
-        bbox = [int(li[2]), int(li[3]), int(li[4]), int(li[5])]
-        confidence = li[6]
-        pd_array.append([name, bbox, classes, confidence])
-        pd_len += 1
+        if line == '' or line == '\n' or line == ' \n':
+            pass
+        else:
+            li = line.split(' ')
+            name = li[0]
+            classes = li[1]
+            bbox = [int(li[2]), int(li[3]), int(li[4]), int(li[5])]
+            confidence = li[6]
+            pd_array.append([name, bbox, classes, confidence])
+            pd_len += 1
     for lune in gt:
         lu = lune.split(' ')
         nome = lu[0]
@@ -402,7 +418,7 @@ def do_math(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hu
         bbax = [int(lu[2]), int(lu[3]), int(lu[4]), int(lu[5])]
         gt_array.append([nome, bbax, clisses])
         gt_len += 1
-    for item in pd_array:
+    for item in tqdm.tqdm(pd_array, unit='comparing bounding boxes'):
         name = item[0]
         bbox = item[1]
         classes = item[2]
@@ -620,10 +636,59 @@ def inference_report(repot_txt, save_name='areas.png'):
     plt.clf()
     plt.cla()   
 
-def plot_bbox_area_polars(gt_file, pd_file, save_name='areas', path='/home/as-hunt/', obj_name='/home/as-hunt/Etra-Space/white-thirds/obj.names'):
+
+
+
+
+def process_item(item, gt_array, pdchaart, gtchaart, classesp, classesg, dfp, dfg, tagp, tagg, combined, target_names):
+    name, bbox, classes, confidence = item
+    for thing in gt_array:
+        nome, bbax, clisses = thing
+        if name in thing[0]:
+            place = gt_array.index(thing)
+            if iou(bbax, bbox) >= 0.5:
+                pdchaart.append([classes, (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1])))])
+                gtchaart.append([clisses, (abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1])))])
+                classesp.append(classes)
+                classesg.append(clisses)
+                dfp.append(float(abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))))
+                dfg.append(float(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))))
+                tagp.append('PD')
+                tagg.append('GT')
+                if classes == clisses:
+                    match = True
+                    combined.append([(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))), (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), classes, clisses, match, float(iou(bbax, bbox))])
+                else:   
+                    match = False
+                    combined.append([(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))), (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), classes, clisses, match, float(iou(bbax, bbox))])
+                gt_array.pop(place)
+
+def parallel_process_items(pd_array, gt_array, target_names):
+    with multiprocessing.Manager() as manager:
+        pdchaart = manager.list()
+        gtchaart = manager.list()
+        classesp = manager.list()
+        classesg = manager.list()
+        dfp = manager.list()
+        dfg = manager.list()
+        tagp = manager.list()
+        tagg = manager.list()
+        combined = manager.list()
+
+        pool = multiprocessing.Pool()
+        func = partial(process_item, gt_array=gt_array, pdchaart=pdchaart, gtchaart=gtchaart, classesp=classesp, classesg=classesg, dfp=dfp, dfg=dfg, tagp=tagp, tagg=tagg, combined=combined, target_names=target_names)
+        for _ in tqdm.tqdm(pool.imap_unordered(func, pd_array), total=len(pd_array), unit='pd bbox'):
+            pass
+        pool.close()
+        pool.join()
+
+        return pdchaart, gtchaart, classesp, classesg, dfp, dfg, tagp, tagg, combined
+
+
+
+@timing
+def mplot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/', obj_name='/home/as-hunt/Etra-Space/white-thirds/obj.names'):
     '''Plots the areas of the bounding boxes in the ground truth and prediction from txt summary files'''
-    plt.clf()
-    plt.cla()   
     names = []
     values = []
     gtchaart = []
@@ -672,71 +737,75 @@ def plot_bbox_area_polars(gt_file, pd_file, save_name='areas', path='/home/as-hu
             target_names.append('Monocyte-Activated')
         elif item == 'NEU-A':
             target_names.append('Neutrophil-Activated')
-        elif item == 'LYMA':
-            target_names.append('Lymphocyte-Activated')
-        elif item == 'MONA':
-            target_names.append('Monocyte-Activated')
-        elif item == 'NEUA':
-            target_names.append('Neutrophil-Activated')   
     target_names.sort()     
     listed = open(pd_file, 'r')
     losted = open(gt_file, 'r')
+    print('Plotting areas.')
     for line in listed:
         li = line.split(' ')
         name = li[0]
         classes = li[1]
         bbox = [int(li[2]), int(li[3]), int(li[4]), int(li[5])]
         confidence = li[6]
-        pd_array.append([name, bbox, classes, confidence])
+        pd_array.append([name, bbox, target_names[int(classes)], confidence])
     for lune in losted:
         lu = lune.split(' ')
         nome = lu[0]
         clisses = lu[1]
         bbax = [int(lu[2]), int(lu[3]), int(lu[4]), int(lu[5])]
-        gt_array.append([nome, bbax, classes])
-    for item in tqdm.tqdm(pd_array, desc='Comparing Bboxes'):
-        name = item[0]
-        bbox = item[1]
-        classes = item[2]
-        confidence = item[3]
-        for thing in gt_array:
-            nome = thing[0]
-            bbax = thing[1]
-            clisses = thing[2]
-            if name in thing[0]:
-                place = gt_array.index(thing)
-                if iou(bbax, bbox) >= 0.5:
-                    pdchaart.append([classes, (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1])))])
-                    gtchaart.append([clisses, (abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1])))])
-                    classesp.append(classes)
-                    classesg.append(clisses)    
-                    # combined.append([(abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), (abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1])))])     
-                    dfp.append(float(abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))))
-                    dfg.append(float(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))))
-                    tagp.append('PD')
-                    tagg.append('GT')
-                    if classes == clisses:
-                        match = True
-                        combined.append([(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))), (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), classes, clisses, match, float(iou(bbax, bbox))])
-                    else:   
-                        match = False
-                        combined.append([(abs(int(bbax[2]) - int(bbax[0])) * abs(int(bbax[3]) - int(bbax[1]))), (abs(int(bbox[2]) - int(bbox[0])) * abs(int(bbox[3]) - int(bbox[1]))), classes, clisses, match, float(iou(bbax, bbox))])
-                    gt_array.pop(place)
+        gt_array.append([nome, bbax, target_names[int(clisses)]])
+    pdchaart, gtchaart, classesp, classesg, dfp, dfg, tagp, tagg, combined = parallel_process_items(pd_array, gt_array, target_names)
     for item in areas:   
         names.append(item[0]) 
         values.append(item[1])
-    plt.clf()
-    plt.cla()      
+    fig, axs = plt.subplots(1, figsize=(9, 3), sharey=True)
+    cl0 = []
+    cl1 = []
+    cl2 = []
+    cl3 = []
+    cl4 = []
+    cl5 = []
+    gcl0 = []
+    gcl1 = []
+    gcl2 = []
+    gcl3 = []
+    gcl4 = []
+    gcl5 = []
+    for item in pdchaart:
+        if item[0] == '0':
+            cl0.append(item[1])
+        elif item[0] == '1':
+            cl1.append(item[1])
+        elif item[0] == '2':
+            cl2.append(item[1])
+        elif item[0] == '3':
+            cl3.append(item[1])
+        elif item[0] == '4':  
+            cl4.append(item[1])
+        elif item[0] == '5':
+            cl5.append(item[1])          
+    for item in gtchaart:
+        if item[0] == '0':
+            gcl0.append(item[1])
+        elif item[0] == '1':
+            gcl1.append(item[1])
+        elif item[0] == '2':
+            gcl2.append(item[1])
+        elif item[0] == '3':
+            gcl3.append(item[1])
+        elif item[0] == '4':  
+            gcl4.append(item[1])
+        elif item[0] == '5':
+            gcl5.append(item[1])    
     fig, axs = plt.subplots(2, 2)        
     fig.set_size_inches(16, 10)   
-    df = pl.DataFrame({'Class':classesp, 'Area':dfp, 'Dataset':tagp})
-    du = pl.DataFrame({'Class':classesg, 'Area':dfg, 'Dataset':tagg})
-    df.extend(du)
-    print(df)
+    df = pd.DataFrame({'Class':classesp, 'Area':dfp, 'Dataset':tagp}, columns=["Class", "Area", "Dataset"])
+    for i in range(len(classesg)):
+        new_row = {'Class': classesg[i], 'Area': dfg[i], 'Dataset': tagg[i]}
+        df = df._append(new_row, ignore_index=True)
     sns.violinplot(data=df, cut=0, x='Class', y='Area', inner='box', scale='count', hue="Dataset", split=True, ax=axs[0, 0])
     axs[0, 0].set_title('Bbox Area Plotting per Class')
-    columns=["x", "y", 'PD_class', 'GT_class', 'Match', 'IoU']
-    du = pl.DataFrame({'x':[item[0] for item in combined], 'y':[item[1] for item in combined], 'PD_class':[item[2] for item in combined], 'GT_class':[item[3] for item in combined], 'Match':[item[4] for item in combined], 'IoU':[item[5] for item in combined]})
+    du = pd.DataFrame(combined, columns=["x", "y", 'PD_class', 'GT_class', 'Match', 'IoU'])
     sns.scatterplot(data=du, x="x", y="y", ax=axs[1, 0], hue='Match', palette=["Red", "Blue",])
     axs[1, 0].set_title('Ground Truth Bbox by Predicted Bbox Areas coloured by Match of Classes')
     axs[1, 0].set(xlabel='Ground Truth Areas (pixels)', ylabel='Predicted Areas (pixels)')
@@ -750,256 +819,4 @@ def plot_bbox_area_polars(gt_file, pd_file, save_name='areas', path='/home/as-hu
     plt.clf()
     plt.cla()   
 
-def do_math_polars(gt_file, pd_file, title, path, save_txt=False, obj_name='/home/as-hunt/Etra-Space/white-thirds/obj.names', save_png=False):
-    '''This function takes in a ground truth file and a prediction file and returns AI metrics for the model
-    Optionally, it also outputs a confusion matrix and a text file with the results of the confusion matrix
-    
-    _____________________________________________________________
-    Args:
 
-    gt_file: ground truth file
-    pd_file: prediction file
-    
-    title: title of the output files
-    path: path to save the output files
-    
-    save_txt: boolean, whether or not to save the text file
-    save_png: boolean, whether or not to save the png file
-    
-    obj_name: path to the obj.names file to use for the confusion matrix
-    ______________________________________________________________
-    '''
-    plt.clf()
-    plt.cla()   
-    gt = open(gt_file, 'r')
-    # print('tick')
-    gt_array = []
-    gt_len = 0
-    gt_cm = []
-    pud = open(pd_file, 'r')
-    # print('tack')
-    pd_len = 0
-    pd_array = []
-    pd_cm = []
-    target_names = []
-    temp = []
-    # print(obj_name)
-    with open(obj_name, 'r') as f:
-        lines = (line.rstrip() for line in f)
-        lines = list(line for line in lines if line) # Non-blank lines in a list
-        for line in lines:
-            # print(line)
-            temp.append(line)      
-    for item in temp:
-        if item == 'ECHY':
-            target_names.append('Echinocytes')
-        elif item == 'ERY':
-            target_names.append('Erythrocyte')
-        elif item == 'LYM':
-            target_names.append('Lymphocyte')
-        elif item == 'MON':
-            target_names.append('Monocyte')
-        elif item == 'NEU':
-            target_names.append('Neutrophil')
-        elif item == 'PLT':
-            target_names.append('Platelet')
-        elif item == 'WBC':
-            target_names.append('White Blood Cell')          
-        elif item == 'CTRL':
-            target_names.append('Control')
-        elif item == 'PHA':
-            target_names.append('PHA')
-        elif item == 'LYM-A':
-            target_names.append('Lymphocyte-Activated')
-        elif item == 'MON-A':
-            target_names.append('Monocyte-Activated')
-        elif item == 'NEU-A':
-            target_names.append('Neutrophil-Activated')
-        elif item == 'LYMA':
-            target_names.append('Lymphocyte-Activated')
-        elif item == 'MONA':
-            target_names.append('Monocyte-Activated')
-        elif item == 'NEUA':
-            target_names.append('Neutrophil-Activated')            
-    target_names.sort()        
-    # print('tock')
-    for line in pud:
-        li = line.split(' ')
-        name = li[0]
-        classes = li[1]
-        bbox = [int(li[2]), int(li[3]), int(li[4]), int(li[5])]
-        confidence = li[6]
-        pd_array.append([name, bbox, classes, confidence])
-        pd_len += 1
-    for lune in gt:
-        lu = lune.split(' ')
-        nome = lu[0]
-        clisses = lu[1]
-        bbax = [int(lu[2]), int(lu[3]), int(lu[4]), int(lu[5])]
-        gt_array.append([nome, bbax, clisses])
-        gt_len += 1
-    for item in pd_array:
-        name = item[0]
-        bbox = item[1]
-        classes = item[2]
-        confidence = item[3]
-        for thing in gt_array:
-            nome = thing[0]
-            bbax = thing[1]
-            clisses = thing[2]
-            if name in thing[0]:
-                place = gt_array.index(thing)
-                if iou(bbox, bbax) >= 0.5:
-                        gt_cm.append(clisses)
-                        pd_cm.append(classes)
-                        gt_array.pop(place)
-                else:
-                    pass
-    y_actu = pl.Series(gt_cm, name='Ground Truth')
-    y_pred = pl.Series(pd_cm, name='Predicted')
-    # print('tick')
-    try:
-        F1m = f1_score(y_actu, y_pred, average='macro')
-        if math.isnan(F1m)==True:
-            F1m =  '0'
-        elif F1m  == '-0.0':
-            F1m =  '0'    
-    except:
-        F1m =  '0'
-    try:
-        F1w = f1_score(y_actu, y_pred, average='weighted')
-        if math.isnan(F1w)==True:
-            F1w =  '0'
-        elif F1w == '0.0':        
-            F1w =  '0'
-    except:
-        F1w =  '0'
-    F1n = f1_score(y_actu, y_pred, average=None)
-    try:
-        acc = accuracy_score(y_actu, y_pred)
-        if math.isnan(acc)==True:
-            acc =  '0'
-        elif acc  == '-0.0':
-            acc =  '0'
-    except:
-        acc =  '0'
-    try:
-        the_report = classification_report(y_actu, y_pred, target_names=target_names)
-    except:
-        the_report = 'Classification report failed'
-    try:
-        precision_score_weighted = precision_score(y_actu, y_pred, average='weighted')
-        if math.isnan(precision_score_weighted)==True:
-            precision_score_weighted =  '0'
-        elif precision_score_weighted  == '-0.0':
-            precision_score_weighted =  '0'    
-    except:
-        precision_score_weighted =  '0'
-    try:
-        precision_score_macro = precision_score(y_actu, y_pred, average='macro')
-        if math.isnan(precision_score_macro)==True:
-            precision_score_macro =  '0'
-        elif precision_score_macro  == '-0.0':
-            precision_score_macro =  '0'
-    except:
-        precision_score_macro =  '0'
-    precision_score_none = precision_score(y_actu, y_pred, average=None)
-    try:
-        recall_score_weighted = recall_score(y_actu, y_pred, average='weighted')
-        if math.isnan(recall_score_weighted)==True:
-            recall_score_weighted =  '0'
-        elif recall_score_weighted  == '-0.0':
-            recall_score_weighted =  '0'
-    except:
-        recall_score_weighted =  '0'
-    try:
-        recall_score_macro = recall_score(y_actu, y_pred, average='macro')
-        if math.isnan(recall_score_macro)==True:
-            recall_score_macro =  '0'
-        elif recall_score_macro  == '-0.0': 
-            recall_score_macro =  '0'
-    except:
-        recall_score_macro =  '0'
-    recall_score_none = recall_score(y_actu, y_pred, average=None)
-    try:
-        fbeta05_score_weighted = fbeta_score(y_actu, y_pred, average='weighted', beta=0.5)
-        if math.isnan(fbeta05_score_weighted)==True:
-            fbeta05_score_weighted =  '0'
-        elif fbeta05_score_weighted  == '-0.0':
-            fbeta05_score_weighted =  '0'
-    except:
-        fbeta05_score_weighted =  '0'
-    try:
-        fbeta05_score_macro = fbeta_score(y_actu, y_pred, average='macro', beta=0.5)
-        if math.isnan(fbeta05_score_macro)==True:
-            fbeta05_score_macro =  '0'
-        elif fbeta05_score_macro  == '-0.0':
-            fbeta05_score_macro =  '0'
-    except:
-        fbeta05_score_macro =  '0'
-    fbeta05_score_none = fbeta_score(y_actu, y_pred, average=None, beta=0.5)
-    try:
-        fbeta2_score_weighted = fbeta_score(y_actu, y_pred, average='weighted', beta=2)
-        if math.isnan(fbeta2_score_weighted)==True:
-            fbeta2_score_weighted =  '0'
-        elif fbeta2_score_weighted  == '-0.0':
-            fbeta2_score_weighted =  '0'
-    except:
-        fbeta2_score_weighted =  '0'
-    try:
-        fbeta2_score_macro = fbeta_score(y_actu, y_pred, average='macro', beta=2)
-        if math.isnan(fbeta2_score_macro)==True:
-            fbeta2_score_macro =  '0'
-        elif fbeta2_score_macro  == '-0.0':
-            fbeta2_score_macro =  '0'
-    except:
-        fbeta2_score_macro =  '0'
-    fbeta2_score_none = fbeta_score(y_actu, y_pred, average=None, beta=2)
-    # print('tock')
-    plt.clf()
-    plt.cla()   
-    plt.figure(figsize = (10,10))
-    name = 'Normalise Confusion Matrix ' + title + ' Post bbox matching normalised'
-    df_confusion = pl.crosstab(y_actu, y_pred, dropna=False)
-    df_conf_norm = df_confusion.div(df_confusion.sum(axis=1), axis="index")
-    plt.title(title)
-    sns.heatmap(df_conf_norm, cmap='coolwarm', annot=True, annot_kws={"size": 16}, xticklabels=target_names, yticklabels=target_names) # font size
-    tick_marks = np.arange(len(df_conf_norm.columns))
-    if save_png == True:
-        plt.savefig(path + name + '.png', bbox_inches='tight')
-    plt.clf()
-    plt.cla()   
-    plt.figure(figsize = (10,10))
-    name = 'Confusion Matrix ' + title + ' Post bbox matching'
-    plt.title(title)
-    sns.set(font_scale=1.4) # for label size
-    sns.heatmap(df_confusion, cmap='coolwarm', annot=True, annot_kws={"size": 16}, xticklabels=target_names, yticklabels=target_names) # font size
-    tick_marks = np.arange(len(df_confusion.columns))
-    if save_png == True:
-        plt.savefig(path + name + '.png', bbox_inches='tight')
-        count_classes_file(gt_file, True, title + '_split.png', target_names)
-    plt.clf()
-    plt.cla()   
-    # print('tick')
-    if save_txt == True:
-        file = open(path + title + '.txt', 'w')
-        file.write("F1 macro: " + str(F1m) + '\n')
-        file.write("F1 weighted: " + str(F1w) + '\n')
-        file.write("F1 none: " + str(F1n) + '\n')
-        file.write("Accuracy score sklearn: " + str(acc) + '\n')
-        file.write(the_report + '\n')
-        file.write("Precision score weighted: " + str(precision_score_weighted) + '\n')
-        file.write("Precision score macro: " + str(precision_score_macro) + '\n')
-        file.write("Precision score none: " + str(precision_score_none) + '\n')
-        file.write("Recall score weighted: " + str(recall_score_weighted) + '\n')
-        file.write("Recall score macro: " + str(recall_score_macro) + '\n')
-        file.write("Recall score none: " + str(recall_score_none) + '\n')
-        file.write("Fbeta05 score weighted: " + str(fbeta05_score_weighted) + '\n')
-        file.write("Fbeta05 score macro: " + str(fbeta05_score_macro) + '\n')
-        file.write("Fbeta05 score none: " + str(fbeta05_score_none) + '\n')
-        file.write("Fbeta2 score weighted: " + str(fbeta2_score_weighted) + '\n')
-        file.write("Fbeta2 score macro: " + str(fbeta2_score_macro) + '\n')
-        file.write("Fbeta2 score none: " + str(fbeta2_score_none) + '\n')
-        file.close()
-    # print('tock')    
-    return F1w, F1m, acc, precision_score_weighted, precision_score_macro, recall_score_weighted, recall_score_macro, fbeta05_score_weighted, fbeta05_score_macro, fbeta2_score_weighted, fbeta2_score_macro

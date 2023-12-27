@@ -446,9 +446,12 @@ def check_all_annotations_for_duplicates(annotation_file):
     with open(annotation_file, 'r') as f:
         lines = f.readlines()
         for line in lines:
-            l = line.split(' ')
-            image_name, classes, left_x, top_y, right_x, bottom_y, confidence = l[0], l[1], l[2], l[3], l[4], l[5], l[6]
-            start.append([image_name, classes, left_x, top_y, right_x, bottom_y, confidence])
+            if line == '\n':
+                pass
+            else:
+                l = line.split(' ')
+                image_name, classes, left_x, top_y, right_x, bottom_y, confidence = l[0], l[1], l[2], l[3], l[4], l[5], l[6]
+                start.append([image_name, classes, left_x, top_y, right_x, bottom_y, confidence])
     for item in start:
         with open(annotation_file, 'a+') as f:
             lines = f.readlines()
@@ -466,7 +469,7 @@ def check_all_annotations_for_duplicates(annotation_file):
                             start.remove(item)
     with open(annotation_file, 'w') as f:
         for item in start:
-            f.write(item[0] + ' ' + item[1] + ' ' + item[2] + ' ' + item[3] + ' ' + item[4] + ' ' + item[5] + ' ' + item[6] + ' \n')
+            f.write(item[0] + ' ' + item[1] + ' ' + item[2] + ' ' + item[3] + ' ' + item[4] + ' ' + item[5] + ' ' + item[6] + ' \n')    
 
 
 def del_edge_bbox_train(results_folder):

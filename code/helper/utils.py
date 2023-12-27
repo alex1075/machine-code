@@ -5,12 +5,25 @@ import tqdm
 import subprocess
 import inquirer
 import numpy as np
+from functools import wraps
+from time import time
 from code.helper.config import *
 from code.helper.annotations import *
 from code.helper.imageTools import *
 
 
 host_file = os.getcwd() + '/code/data/hosts'
+
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        print('func:%r args:[%r, %r] took: %2.4f sec' % \
+          (f.__name__, args, kw, te-ts))
+        return result
+    return wrap
 
 def check_full_path(path):
     if os.path.isabs(path) == True:
