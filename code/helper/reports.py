@@ -132,7 +132,6 @@ def plot_bbox_area(gt_file, pd_file, save_name='areas', path='/home/as-hunt/', o
             except:
                 print(li)
                 raise Exception('Error in plotting areas. Check the format of the prediction file.')
-
     for lune in losted:
         lu = lune.split(' ')
         nome = lu[0]
