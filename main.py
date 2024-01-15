@@ -49,7 +49,7 @@ def main(docker=False):
         print('This is the folder with the Train/Test/Valid folders')
         print('and the obj.data, obj.names, and yolov4_10.cfg files')
         if docker == False:
-            path = choose_folder('/home/as-hunt/Etra-Space/')
+            path = choose_folder(PATHY)
         elif docker == True:
             path = choose_folder('/media/')
         path = check_full_path(path)
@@ -58,7 +58,7 @@ def main(docker=False):
             if docker == True:
                 weights = '/root/yolov4.conv.137'
             else:
-                weights = '/home/as-hunt/Etra-Space/cfg/yolov4.conv.137'
+                weights = PATHY + 'cfg/yolov4.conv.137'
         else:
             if docker == False:
                 weights = input('Enter the path to the weights: ')
@@ -93,7 +93,7 @@ def main(docker=False):
         if aa == 'Analyze data locally':
             if docker == False:
                 path = input('Enter the path to the data: (remember to end with a /)')
-                model = choose_folder('/home/as-hunt/Etra-Space/')
+                model = choose_folder(PATHY)
             elif docker == True:
                 path = '/media/'
                 model = choose_folder('/media/')    
@@ -112,7 +112,7 @@ def main(docker=False):
                 path = input('Enter the path where to copy the data: (remember to end with a /)')    
                 get_file_over(path, string)
                 clear()
-                model = choose_folder('/home/as-hunt/Etra-Space/')
+                model = choose_folder(PATHY)
                 name = choose_weights(model)
                 a = yes_no_question('Do you want to save generated labels?')
                 if a == 'y':
@@ -137,7 +137,7 @@ def main(docker=False):
         beta_banner()
         qq = yes_no_question('Is the origin folder in Etra-Space?')
         if qq == 'y':
-            path = '/home/as-hunt/Etra-Space/'
+            path = PATHY
             path1 = choose_folder(path)
         else:
             path = '/home/as-hunt/'
@@ -152,7 +152,7 @@ def main(docker=False):
         cv2q = yes_no_question('Do you want to use OpenCV for the test?')
         output_name = input('Enter the name of the output files: ')
         if docker == False:
-            path = choose_folder('/home/as-hunt/Etra-Space/')
+            path = choose_folder(PATHY)
         elif docker == True:    
             path = choose_folder('/media/')
         if cv2q == 'y':
@@ -163,7 +163,7 @@ def main(docker=False):
         clear()
         qq = yes_no_question('Is the origin folder in Etra-Space?')
         if qq == 'y':
-            path = '/home/as-hunt/Etra-Space/'
+            path = PATHY
             path1 = choose_folder(path)
         else:
             path = '/home/as-hunt/'
@@ -179,7 +179,7 @@ def main(docker=False):
         clear()
         qq = yes_no_question('Is the origin folder in Etra-Space?')
         if qq == 'y':
-            path = '/home/as-hunt/Etra-Space/'
+            path = PATHY
             path1 = choose_folder(path)
         else:
             path = '/home/as-hunt/'
@@ -189,7 +189,7 @@ def main(docker=False):
         os.makedirs(path2, exist_ok=True)
         w_choice = yes_no_question('Do you want to use the default weights to begin training?')
         if w_choice == 'y':
-                weights = '/home/as-hunt/Etra-Space/cfg/yolov4.conv.137'
+                weights = PATHY + 'cfg/yolov4.conv.137'
         else:
                 weights = input('Remember to have the files mounted in /media. Enter the path to the weights: ')
         weights = check_full_path(weights)
@@ -211,7 +211,7 @@ def main(docker=False):
         cv2q = yes_no_question('Do you want to use OpenCV for the test?')
         qq = yes_no_question('Is the origin folder in Etra-Space?')
         if qq == 'y':
-            path = '/home/as-hunt/Etra-Space/'
+            path = PATHY
             path1 = choose_folder(path)
         else:
             path = '/home/as-hunt/'
