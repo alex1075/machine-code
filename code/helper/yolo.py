@@ -11,6 +11,7 @@ from code.helper.reports import *
 from code.helper.utils import *
 from code.helper.data import *
 from multiprocessing import Process
+from code.helper.augment import *
 
 def cv2_load_net(model_weights, model_config):
     # Load the pre-trained YOLO model and corresponding classes
@@ -293,7 +294,7 @@ def test_fancy(path, outpout_name, choose_wights = True, weights = "/home/as-hun
         pass
     do_math(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, True, names, True)
 
-def train_5_fold_validation(folder_with_all_data, save_path, upper_range=10000, model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show", test=False):
+def train_5_fold_validation(folder_with_all_data, save_path, upper_range=10000, model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show", test=False, augment=False, augments=()):
     folder_with_all_data = check_full_path(folder_with_all_data)
     save_path = check_full_path(save_path)
     split_to_X_folders(folder_with_all_data, folder_with_all_data, 5)
@@ -318,7 +319,9 @@ def train_5_fold_validation(folder_with_all_data, save_path, upper_range=10000, 
         combine_three_folders(folder_with_all_data, save_path + f'{n1}/train/', n1, n2, n3)
         shutil.copytree(folder_with_all_data + f'f{n4}/', save_path + f'{n1}/valid/', dirs_exist_ok=True)
         shutil.copytree(folder_with_all_data + f'f{n5}/', save_path + f'{n1}/test/', dirs_exist_ok=True)
-        shutil.copy(save_path + f'{n1}/train/classes.txt', save_path + f'{n1}/obj.names')    
+        shutil.copy(save_path + f'{n1}/train/classes.txt', save_path + f'{n1}/obj.names')   
+        if augment == True:
+            iterate_augment(save_path + f'{n1}/train/', augments, True) 
         if os.path.exists(save_path+ f'{n1}/train/') == True:
             remove_non_annotated(save_path + f'{n1}/train/')
             prep(save_path + f'{n1}/train/', 'train.txt')
