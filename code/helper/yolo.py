@@ -12,6 +12,7 @@ from code.helper.utils import *
 from code.helper.data import *
 from multiprocessing import Process
 from code.helper.augment import *
+import code.helper.config as config
 
 def cv2_load_net(model_weights, model_config):
     # Load the pre-trained YOLO model and corresponding classes
@@ -96,7 +97,7 @@ def test_folder_cv2_DNN(folder_path, net, file_name, classes):
     file.close()    
     os.system("sed -i \'/^$/d\' " + file_name)
 
-def train_easy(obj_data="/home/as-hunt/Etra-Space/white-thirds/obj.data", cfg="/home/as-hunt/Etra-Space/white-thirds/yolov4.cfg", model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show"):
+def train_easy(obj_data=config.PATH + "obj.data", cfg=config.Default_cfg, model=config.Default_weights, args=" -mjpeg_port 8090 -clear -dont_show"):
     '''Trains a model with the given parameters
     obj_data: path to obj.data file
     cfg: path to cfg file
@@ -105,7 +106,7 @@ def train_easy(obj_data="/home/as-hunt/Etra-Space/white-thirds/obj.data", cfg="/
     '''
     os.system("darknet detector train " + obj_data + ' ' + cfg + ' ' + model + ' ' + args )
 
-def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000, model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show", test=False):
+def train_fancy(dir="", upper_range=10000, model=config.Default_weights, args=" -mjpeg_port 8090 -clear -dont_show", test=False):
     '''Trains a model with the given parameters
     dir: path to directory containing obj.data, cfg, and test folder
     upper_range: number of epochs to train for
@@ -115,6 +116,8 @@ def train_fancy(dir="/home/as-hunt/Etra-Space/white-thirds/", upper_range=10000,
     PS: will need to have the cfg file configured to train for only 10 epochs at a time
     PPS: good luck!
     '''
+    if dir == "":
+        raise Exception("Please provide a directory")
     li = []
     epoch = 0
     warnings.filterwarnings("ignore")
@@ -271,7 +274,7 @@ def get_info(data_path, model_path, model_name, sava_annotations=False):
     os.remove(temp_path + 'result.txt')
 
 
-def test_fancy(path, outpout_name, choose_wights = True, weights = "/home/as-hunt/Etra-Space/cfg/yolov4.conv.137"):
+def test_fancy(path, outpout_name, choose_wights = True, weights = config.Default_weights):
     path = check_full_path(path)
     if choose_wights == True:
         weights = choose_weights(path)
@@ -294,7 +297,7 @@ def test_fancy(path, outpout_name, choose_wights = True, weights = "/home/as-hun
         pass
     do_math(temp_path + 'gt.txt', temp_path + 'results.txt', outpout_name, path, True, names, True)
 
-def train_5_fold_validation(folder_with_all_data, save_path, upper_range=10000, model="/home/as-hunt/Etra-Space/cfg/yolov4.conv.137", args=" -mjpeg_port 8090 -clear -dont_show", test=False, augment=False, augments=()):
+def train_5_fold_validation(folder_with_all_data, save_path, upper_range=10000, model=config.Default_weights, args=" -mjpeg_port 8090 -clear -dont_show", test=False, augment=False, augments=()):
     folder_with_all_data = check_full_path(folder_with_all_data)
     save_path = check_full_path(save_path)
     split_to_X_folders(folder_with_all_data, folder_with_all_data, 5)
@@ -341,7 +344,7 @@ def test_5_fold_validation(work_dir, save_name, epochs=250):
     for i in range(1, 6, 1):
         test_fancy(folder + f'/{i}/', save_name + f'_{i}', False, folder + f'/{i}/backup/yolov4_10_pass_{i}_{epochs}.weights')
 
-def cv2_test_fancy(path, outpout_name, choose_wights = True, weights = "/home/as-hunt/Etra-Space/cfg/yolov4.conv.137"):
+def cv2_test_fancy(path, outpout_name, choose_wights = True, weights = config.Default_weights):
     path = check_full_path(path)
     if choose_wights == True:
         weights = choose_weights(path)
