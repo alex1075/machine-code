@@ -60,10 +60,9 @@ def resizeAllJpg(path_to_folder='Data/', newhight=1080, newwid=1080):
 
 #Cycles through videos in path_to_folder and outputs jpg to out_folder
 def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
-    tic = time.perf_counter()
     for fi in os.listdir(path_to_folder):
         nam, ext = os.path.splitext(fi)
-        if fi.endswith('.mp4'):
+        if fi.endswith('.mp4') or fi.endswith('.MP4'):
             cam = cv2.VideoCapture(path_to_folder + fi)
             all_frames = int(cam.get(cv2.CAP_PROP_FRAME_COUNT)) 
             try:
@@ -91,8 +90,6 @@ def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
                 pass
         else:
             pass
-    toc = time.perf_counter()
-    print(f"Finished in {toc - tic:0.4f} seconds")
 
 def convertAVideoToImage(video, path):
             cam = cv2.VideoCapture(video)

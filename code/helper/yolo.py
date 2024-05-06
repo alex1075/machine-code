@@ -12,7 +12,7 @@ from code.helper.utils import *
 from code.helper.data import *
 from multiprocessing import Process
 from code.helper.augment import *
-import code.helper.config as config
+import code.data.config as config
 
 def cv2_load_net(model_weights, model_config):
     # Load the pre-trained YOLO model and corresponding classes

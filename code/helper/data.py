@@ -15,7 +15,7 @@ def data_conversion(docker=False):
         temp = yes_no_question('Use temp folder?')
         for file in os.listdir(path):
             if temp == 'y':
-                if file.endswith('.mp4'):
+                if file.endswith('.mp4') or file.endswith('.MP4'):
                     clear()
                     print('Converting video to image series')
                     temp = check_full_path('temp/')
@@ -77,6 +77,64 @@ def data_conversion(docker=False):
                 if docker == False:
                     out = input('Enter the path to the output folder: (end with a /)')
                     out = check_full_path(out)
+                    if file.endswith('.mp4') or file.endswith('.MP4'):
+                        clear()
+                        print('Converting video to image series')
+                        temp = check_full_path('temp/')
+                        convertVideoToImage(path, temp)
+                        print('Video converted')
+                        time.sleep(2)
+                        clear()
+                        cut = yes_no_question('Do you wish to cut the images into 416x416 pixels?')
+                        ann = yes_no_question('Is the data annotated?')
+                        if cut == 'y':
+                            if ann == 'y':
+                                os.mkdir('temp2/')
+                                chopUpDataset(temp, 'temp2/', 416, 416, True)
+                                os.system('rm -r ' + temp)
+                                os.system('mv temp2/ ' + temp)
+                                end_program()
+                            elif ann == 'n':
+                                os.mkdir('temp2/')
+                                chopUpDataset(temp, 'temp2/', 416, 416, False)
+                                os.system('rm -r ' + temp)
+                                os.system('mv temp2/ ' + temp)
+                                end_program()
+                        elif cut == 'n':
+                            end_program()
+                    elif file.endswith('.png') or file.endswith('.tiff') or file.endswith('.bmp') or file.endswith('.jpg'):
+                        print('Converting images to JPG')
+                        try:
+                            temp = check_full_path('temp/')
+                        except:
+                            os.mkdir('temp/')
+                            temp = check_full_path('temp/')    
+                        convert(path, True, temp)
+                        print('Images converted')
+                        cut = yes_no_question('Do you wish to cut the images into 416x416 pixels?')
+                        if cut == 'y':
+                            ann = yes_no_question('Is the data annotated?')
+                            if ann == 'y':
+                                temp2 = 'temp2/'
+                                try:
+                                    os.mkdir(temp2)
+                                except:
+                                    pass
+                                temp2 = check_full_path(temp2)
+                                try:
+                                    chopUpDataset(temp, temp2, 416, 416, True)
+                                except:
+                                    chopUpDataset(path, temp2, 416, 416, True)
+                                os.system('rm -r ' + temp)
+                                os.system('mv ' +temp2 + ' ' + temp)
+                                end_program()
+                            elif ann == 'n':
+                                os.mkdir('temp2/')
+                                chopUpDataset(temp, 'temp2/', 416, 416, False)
+                                os.system('rm -r ' + temp)
+                                end_program()
+                        elif cut == 'n':
+                            end_program()
                 else:
                     out = '/media/out/'
                     if os.path.isdir(out) == False:
