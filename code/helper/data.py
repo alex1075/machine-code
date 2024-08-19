@@ -113,7 +113,10 @@ def data_conversion(docker=False):
                             end_program()
                         elif ann == 'n':
                             chopUpDataset(path, out, 416, 416, False)
-                            os.remove('temp/*')
+                            try:
+                                os.remove('temp/*')
+                            except:
+                                pass
                             end_program()
                     elif cut == 'n':   
                         convert(path, True, out)

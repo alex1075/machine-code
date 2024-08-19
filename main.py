@@ -49,7 +49,7 @@ def main(docker=False):
         print('This is the folder with the Train/Test/Valid folders')
         print('and the obj.data, obj.names, and yolov4_10.cfg files')
         if docker == False:
-            path = choose_folder(config.PATH)
+            path = choose_folder(config.path)
         elif docker == True:
             path = choose_folder('/media/')
         path = check_full_path(path)
@@ -93,7 +93,7 @@ def main(docker=False):
         if aa == 'Analyze data locally':
             if docker == False:
                 path = input('Enter the path to the data: (remember to end with a /)')
-                model = choose_folder(config.PATH)
+                model = choose_folder(config.path)
             elif docker == True:
                 path = '/media/'
                 model = choose_folder('/media/')    
@@ -112,7 +112,7 @@ def main(docker=False):
                 path = input('Enter the path where to copy the data: (remember to end with a /)')    
                 get_file_over(path, string)
                 clear()
-                model = choose_folder(config.PATH)
+                model = choose_folder(config.path)
                 name = choose_weights(model)
                 a = yes_no_question('Do you want to save generated labels?')
                 if a == 'y':
@@ -137,7 +137,7 @@ def main(docker=False):
         beta_banner()
         qq = yes_no_question('Is the origin folder in Etra-Space?')
         if qq == 'y':
-            path = config.PATH
+            path = config.path
             path1 = choose_folder(path)
         else:
             path = '/home/as-hunt/'
@@ -152,7 +152,7 @@ def main(docker=False):
         cv2q = yes_no_question('Do you want to use OpenCV for the test?')
         output_name = input('Enter the name of the output files: ')
         if docker == False:
-            path = choose_folder(config.PATH)
+            path = choose_folder(config.path)
         elif docker == True:    
             path = choose_folder('/media/')
         if cv2q == 'y':
@@ -166,8 +166,8 @@ def main(docker=False):
             path = config.PATH
             path1 = choose_folder(path)
         else:
-            path = '/home/as-hunt/'
-            path1 = choose_folder(path)
+            path = input('Enter the path to the data: (remember to end with a /)')
+            path1 = check_full_path(path)
         q1 = yes_no_question('Is the data annotated?')
         if q1 == 'y':
             annot = True
@@ -200,8 +200,14 @@ def main(docker=False):
             argus = input('Enter the arguments: ')
         epochs = choose_epochs()
         g_choice = yes_no_question('Do you want to generate training graph reports?') 
+        augments = choose_augmentations()
+        aug_choice = yes_no_question('Do you want to augment the data?')
+        if aug_choice == 'y':
+            aug = True
+        else:
+            aug = False
         if g_choice == 'y':
-            train_5_fold_validation(path1, path2, epochs, weights, argus, True)
+            train_5_fold_validation(path1, path2, epochs, weights, argus, True, aug, augments)
             for i in range(1,6,1):
                 make_training_graphs(path2 + f'/{i}/' + 'output.csv', path2)
         elif g_choice == 'n':
@@ -211,7 +217,7 @@ def main(docker=False):
         cv2q = yes_no_question('Do you want to use OpenCV for the test?')
         qq = yes_no_question('Is the origin folder in Etra-Space?')
         if qq == 'y':
-            path = config.PATH
+            path = config.path
             path1 = choose_folder(path)
         else:
             path = '/home/as-hunt/'

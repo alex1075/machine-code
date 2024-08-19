@@ -1,10 +1,8 @@
 import cv2
 import os
-import decimal
 import tqdm
 import subprocess
 import inquirer
-import numpy as np
 from functools import wraps
 from time import time
 from code.helper.config import *

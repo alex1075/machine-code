@@ -1,7 +1,6 @@
 import os
 import cv2
 import tqdm
-import time
 import fnmatch
 import numpy as np
 import shutil
@@ -61,7 +60,6 @@ def crop_images(x, y, path, save_path, annotations=True):
             pass
 
 def crop_image_list(x, y, lists, path, save_path, annotations=True):
-    tic = time.perf_counter()
     images = lists
     for image in tqdm.tqdm(images, desc="Cropping images"):
             img = cv2.imread(path + image)
@@ -85,8 +83,6 @@ def crop_image_list(x, y, lists, path, save_path, annotations=True):
                 os.remove(save_path + image)
             except:
                 pass
-    toc = time.perf_counter()
-    print(f"Finished in {toc - tic:0.4f} seconds")
 
 def checkAllImg(path, x, y):
     images = os.listdir(path)

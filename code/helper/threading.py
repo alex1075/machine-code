@@ -11,7 +11,6 @@ from code.helper.yolo import *
 from code.helper.imageTools import *
 
 def multi_thread_crop(x, y, path, save_path, annotations=False):
-    tic = time.perf_counter()
     path = check_full_path(path)
     save_path = check_full_path(save_path)
     list_img=[img for img in os.listdir(path) if img.endswith('.jpg')==True]
@@ -35,13 +34,8 @@ def multi_thread_crop(x, y, path, save_path, annotations=False):
         print('Started thread ' + str(i))
     for i in thread_list:
         thread.join()
-    toc = time.perf_counter()
-    print(f"Finished in {toc - tic:0.4f} seconds")
-
-
 
 def multi_file_Video_convert(path):
-    tic = time.perf_counter()
     path = check_full_path(path)
     proc = os.cpu_count()
     print('Number of processors: ' + str(proc))
@@ -66,10 +60,7 @@ def multi_file_Video_convert(path):
             cpu -= (len(videos) - a)
             if cpu <= 0:
                 cpu = 0
-    print('All threads finished')
-    toc = time.perf_counter()
-    print(f"Finished in {toc - tic:0.4f} seconds")        
-    
+    print('All threads finished')     
 
 def list_check_if_testable(listy):
     for image in listy:

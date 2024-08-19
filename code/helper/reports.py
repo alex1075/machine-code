@@ -1,5 +1,4 @@
 import pandas as pd
-import polars as pl
 import seaborn as sns
 import numpy as np
 import tqdm

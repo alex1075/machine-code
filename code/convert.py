@@ -1,6 +1,6 @@
 import cv2
 import re
-import glob, os, time
+import glob, os
 from PIL import Image
 from imutils import paths
 from code.helper.utils import *
@@ -60,7 +60,6 @@ def resizeAllJpg(path_to_folder='Data/', newhight=1080, newwid=1080):
 
 #Cycles through videos in path_to_folder and outputs jpg to out_folder
 def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
-    tic = time.perf_counter()
     for fi in os.listdir(path_to_folder):
         nam, ext = os.path.splitext(fi)
         if fi.endswith('.mp4'):
@@ -91,8 +90,6 @@ def convertVideoToImage(path_to_folder='Video/', out_folder='Data/'):
                 pass
         else:
             pass
-    toc = time.perf_counter()
-    print(f"Finished in {toc - tic:0.4f} seconds")
 
 def convertAVideoToImage(video, path):
             cam = cv2.VideoCapture(video)
@@ -170,10 +167,7 @@ def iterateBlurMove(path_to_folder='', outfolder='sorted/', start=0, end=100, st
         detectAndMoveBlurr(path_to_folder, threshold=i, currentstep=currentstep, outfolder=outfolder)
 
 def chopUpDataset(path_to_folder='test_dataset/', outfolder='output/', x=416, y=416, annotations=True):
-    tic = time.perf_counter()
     crop_images(x, y, path_to_folder, outfolder, annotations)
-    toc = time.perf_counter()
-    print(f"Finished in {toc - tic:0.4f} seconds")
     if annotations == True:
         remove_non_annotated(outfolder)
     else:
