@@ -8,6 +8,8 @@ machine-code contains the data processing pipeline, the AI interface and automat
 
 ### Installation
 
+If you wish to use docker skip to the docker section.
+
 First make sure you have the following installed:
 - Python3 
 - pip3
@@ -37,3 +39,44 @@ or on linux/mac:
 Then follow the instructions on the screen. The program will guide you through the process of importing data, processing it and analysing the results. The output path will be defined by you during the process.
 
 
+### Docker
+
+requirements:
+- docker
+- nvidia-docker (container runtime for GPU access)
+
+# Mount the root data directory as a volume /media to the container
+```bash
+-v /path/to/data:/media 
+```
+
+# Building locally
+
+To run the program in a docker container, first make sure you have docker installed. Then run the following commands:
+
+```bash 
+docker build -t machine-code .
+```
+
+# Running the container
+
+```bash 
+docker run -it --gpus all machine-code
+```
+And follow the instructions on screen. 
+
+# Pulling prebuilt image
+
+Alternatively, you can pull the prebuilt image from dockerhub:
+
+```bash
+docker pull alex1075/machine-code
+```
+
+Then run the container:
+
+```bash
+docker run -it --gpus all alex1075/machine-code
+```
+
+# 
