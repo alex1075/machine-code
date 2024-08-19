@@ -45,12 +45,12 @@ requirements:
 - docker
 - nvidia-docker (container runtime for GPU access)
 
-# Mount the root data directory as a volume /media to the container
+#### Mount the root data directory as a volume /media to the container
 ```bash
 -v /path/to/data:/media 
 ```
 
-# Building locally
+#### Building locally
 
 To run the program in a docker container, first make sure you have docker installed. Then run the following commands:
 
@@ -58,7 +58,7 @@ To run the program in a docker container, first make sure you have docker instal
 docker build -t machine-code .
 ```
 
-# Running the container
+#### Running the container
 
 ```bash 
 docker run -it --gpus all machine-code
