@@ -65,7 +65,7 @@ docker run -it --gpus all machine-code
 ```
 And follow the instructions on screen. 
 
-# Pulling prebuilt image
+#### Pulling prebuilt image
 
 Alternatively, you can pull the prebuilt image from dockerhub:
 
