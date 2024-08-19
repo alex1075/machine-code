@@ -79,4 +79,6 @@ Then run the container:
 docker run -it --gpus all alex1075/machine-code
 ```
 
-# 
+### PS you can run the program/docker container inside a tmux session to keep it running without an active user session. 
+
+
